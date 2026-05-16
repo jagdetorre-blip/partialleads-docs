@@ -1,0 +1,59 @@
+import { Callout, Cards } from 'nextra/components'
+
+# Setup
+
+Setup is where you tell PartialLeads about your business — your domain, your store, your CRM, and which ad platforms should receive the leads you capture.
+
+You'll touch these four pages once, when you first sign up. After that, you only come back here when something changes.
+
+## The four steps
+
+<Cards>
+  <Cards.Card title="Domain" href="/using/setup/domain/">
+    Tell PartialLeads which websites belong to your business. Required before anything else works.
+  </Cards.Card>
+  <Cards.Card title="Integration" href="/using/setup/integration/">
+    Connect your ecommerce platform, CRM, or booking tool so we can see purchases and form submissions.
+  </Cards.Card>
+  <Cards.Card title="Webhook" href="/using/setup/webhook/">
+    Send captured leads outbound to your CRM, email tool, or Zapier/Make automation.
+  </Cards.Card>
+  <Cards.Card title="Conversions" href="/using/setup/conversions/">
+    Send purchase and lead events to Meta, Google Ads, and Pinterest as server-side conversions.
+  </Cards.Card>
+</Cards>
+
+## A typical setup flow
+
+If you're brand new to PartialLeads, the right order is:
+
+1. **Install the tracking pixel on your website.** Pick your platform — Shopify, WordPress, Webflow, GoHighLevel — and follow the [install guide](/other-resources/). Most platforms take under 5 minutes.
+
+2. **[Add your domain](/using/setup/domain/)** in PartialLeads. The pixel will verify it automatically the first time someone loads your site.
+
+3. **[Connect any integrations](/using/setup/integration/)** you need — Shopify for ecommerce, GoHighLevel for CRM, Calendly for bookings.
+
+4. **[Wire your conversions](/using/setup/conversions/)** to Meta, Pinterest, or Google Ads so your ad campaigns can optimize against real outcomes instead of just page loads.
+
+5. **[Set up outbound webhooks](/using/setup/webhook/)** if you want captured leads to flow into Zapier, Make, Klaviyo, ActiveCampaign, HubSpot, or any other CRM.
+
+You can come back to steps 3-5 in any order — they're independent. The only strict requirement is doing the domain step before anything else, because everything checks against your authorized domains.
+
+## Where the tracking pixel install lives
+
+The pixel install instructions live under [Other Resources](/other-resources/) — once you have the pixel on your site, you rarely need to revisit those pages, so they sit in the reference section instead of the main setup flow.
+
+If you're not sure where to paste your tracking code:
+
+- **[Install on Shopify](/other-resources/shopify/)** — `theme.liquid` walkthrough
+- **[Install on WordPress](/other-resources/wordpress/)** — `header.php` or the Insert Headers and Footers plugin
+- **[Install on Webflow](/other-resources/webflow/)** — Project Settings → Custom Code
+- **[Install on GoHighLevel](/other-resources/gohighlevel/)** — funnel header + form embed (two installs)
+- **[Install with Google Tag Manager](/other-resources/google-tag-manager/)** — Custom HTML tag
+- **[Install on Typeform](/other-resources/typeform/)** — via GTM connection
+- **[Install on other sites](/other-resources/other-sites/)** — Squarespace, Wix, Kajabi, ClickFunnels, plain HTML
+- **[Troubleshooting](/other-resources/troubleshooting/)** — when something's not working
+
+---
+
+Already finished setting up? Go to [Dashboard](/using/dashboard/) to see your numbers, or [Leads](/using/leads/) to browse captures.

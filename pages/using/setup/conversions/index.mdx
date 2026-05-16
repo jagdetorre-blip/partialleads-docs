@@ -1,0 +1,61 @@
+import { Cards, Callout } from 'nextra/components'
+
+# Conversions
+
+Conversions send your captured leads and purchase events to ad platforms as **server-side conversion events** — the kind that survive ad blockers, iOS privacy, and cookie deletion.
+
+Without server-side conversions, your ad platforms only see the events that fire from a browser pixel. Roughly 30-50% of those get blocked by ad blockers, iOS Safari's privacy features, or aggressive browser cookie clearing.
+
+PartialLeads fixes that by sending the same events server-to-server. Your ad campaigns see real outcomes (purchases, completed leads, booked calls), not just page loads.
+
+## The three platforms
+
+<Cards>
+  <Cards.Card title="Meta" href="/using/setup/conversions/meta/">
+    Send purchase, lead, and booking events to Facebook + Instagram via the Meta Conversion API. Available on all plans.
+  </Cards.Card>
+  <Cards.Card title="Google" href="/using/setup/conversions/google/">
+    Send offline conversions to Google Ads via Google Sheets, plus optional web call tracking. Requires Starter plan or higher.
+  </Cards.Card>
+  <Cards.Card title="Pinterest" href="/using/setup/conversions/pinterest/">
+    Send conversion events to Pinterest via their Conversions API v5. Requires Starter plan or higher.
+  </Cards.Card>
+</Cards>
+
+## Why server-side beats browser pixels
+
+Browser pixels are the original way conversion tracking worked: a JavaScript snippet on your thank-you page sends an event to the ad platform when it loads. Simple, fragile, increasingly broken.
+
+What goes wrong:
+
+- **Ad blockers** (uBlock, AdBlock Plus, Brave's built-in shields) actively prevent pixels from loading
+- **iOS Safari's Intelligent Tracking Prevention** kills the cookies pixels rely on
+- **Chrome's third-party cookie deprecation** is gradually removing the same cookies
+- **Browser back/forward navigation** sometimes skips pixel fires entirely
+
+Server-side conversion APIs avoid all of this. PartialLeads receives your purchase events directly from Shopify (or Stripe, or your CRM, or your custom platform), then forwards them to Meta / Google / Pinterest using server-to-server HTTP requests — no browser involvement at all.
+
+## How it works at a glance
+
+1. **A purchase or lead happens** on your site (or your CRM, or your booking platform)
+2. **PartialLeads receives the event** server-side via webhook from your integrated platform
+3. **We match the event to a visitor session** — using email, phone, visitor ID cookie, and identity graph
+4. **We fire the matched event** to your configured ad platforms via their server APIs
+5. **Your ad campaigns optimize** against real outcomes, not pixel fires
+
+The matched-session step is the load-bearing part. It's why PartialLeads connects to your integration (Shopify/WC/GHL/Stripe) AND your ad platform — we need both ends to attribute the purchase back to the original click.
+
+## A typical Conversions setup
+
+Most customers configure two or three of these, depending on where they advertise:
+
+- **Run Meta ads?** → set up [Meta](/using/setup/conversions/meta/)
+- **Run Google ads?** → set up [Google](/using/setup/conversions/google/)
+- **Run Pinterest ads?** → set up [Pinterest](/using/setup/conversions/pinterest/)
+- **Run on a network not listed here?** → contact support — TikTok, LinkedIn, and Snap CAPIs are on the roadmap
+
+You can configure multiple platforms simultaneously. PartialLeads dispatches each event to every configured destination in parallel.
+
+---
+
+Pick a platform to configure: [Meta](/using/setup/conversions/meta/) · [Google](/using/setup/conversions/google/) · [Pinterest](/using/setup/conversions/pinterest/).

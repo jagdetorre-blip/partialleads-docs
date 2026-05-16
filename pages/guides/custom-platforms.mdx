@@ -1,0 +1,195 @@
+import { Callout, Steps } from 'nextra/components'
+
+# Custom Platforms Setup
+
+Not on Shopify, WooCommerce, GoHighLevel, or Calendly? PartialLeads ships a **Universal Webhook** that accepts purchase events from any SaaS platform with a bearer-token-authenticated POST. Your platform sends event payloads to a per-connection URL; PartialLeads normalizes the fields, matches the buyer back to a tracked session, and runs the event through the same attribution, CAPI dispatch, and outbound webhook fan-out as native integrations.
+
+## What you'll set up
+
+- **A Universal Webhook connection** in the PartialLeads dashboard (one per platform)
+- **A webhook configuration** on your platform's side, POSTing to the connection URL
+- **Payload field mapping** — we accept generous aliases for ~70% of common SaaS platforms (ThriveCart, Kajabi, SamCart, Magento, PayMongo, ClickFunnels, and many more)
+
+## Before you start
+
+- Admin access to your SaaS platform's webhook settings
+- Your authorized domain in [Authorized Domains](https://partialleads.com/dashboard/authorized-domains)
+- The PartialLeads pixel installed on your funnel — without sessions, there's nothing to match purchases against
+
+---
+
+## Step 1 — Authorize your domain
+
+Open [Dashboard → Authorized Domains](https://partialleads.com/dashboard/authorized-domains) and confirm your domain is listed. Universal Webhook connections require a domain — purchases that come through fan out to CAPI / Google Sheets / outbound webhooks based on this domain.
+
+---
+
+## Step 2 — Create a Universal Webhook connection
+
+<Steps>
+
+#### Open Universal Webhook
+
+Go to [Dashboard → Integrations → Universal Webhook](https://partialleads.com/dashboard/integrations/universal-webhook) and click **Add connection**.
+
+#### Fill in the connection details
+
+- **Display name** — human-readable label for your team (e.g., `ClickFunnels payments`, `ThriveCart`, `Custom Stripe app`)
+- **Slug** — short identifier used as the `source` value for purchase deduplication. Lowercase, no spaces (e.g., `clickfunnels`, `thrivecart`, `customstripe`). One slug per connection
+- **Domain** — pick from your authorized domains
+
+#### Save the connection
+
+PartialLeads will generate:
+- A **webhook URL** — looks like `https://api.partialleads.com/webhooks/universal/{connection_id}`
+- A **webhook secret (bearer token)** — shown ONCE on this screen
+
+Copy both immediately. The secret is hashed at rest — we cannot show it to you again.
+
+<Callout type="warning">
+  If you close the modal before copying the secret, you'll need to regenerate it via the connection card's **Rotate token** button. That invalidates the previous secret immediately, so plan to update your platform's webhook config at the same time.
+</Callout>
+
+</Steps>
+
+---
+
+## Step 3 — Configure your platform's webhook
+
+In your SaaS platform's webhook settings, create a new outbound webhook with these properties:
+
+| Field | Value |
+|---|---|
+| **URL** | The webhook URL from PartialLeads |
+| **Method** | `POST` |
+| **Content-Type** | `application/json` |
+| **Custom header** | `X-PartialLeads-Token: <your secret>` |
+| **Trigger** | Whichever event fires on purchase completion (varies by platform — "Order completed", "Payment received", "Sale", etc.) |
+
+Save the webhook. The connection status in PartialLeads will flip from **Pending first event** to **Active** the moment your first webhook arrives.
+
+### Payload shape — what we expect
+
+PartialLeads accepts a generous alias set. At minimum, your platform must send:
+
+| Field | Required | Common aliases |
+|---|---|---|
+| **Event ID** | ✅ Yes (idempotency) | `event_id`, `id`, `transaction_id`, `order_id`, `payment_id`, `uuid` |
+| **Identity** | ✅ At least one | `email`, `customer_email`, `buyer_email`, `phone`, `customer_phone` |
+| **Amount** | ✅ Yes, must be > 0 | `amount`, `total`, `total_amount`, `price`, `subtotal`, `gross` |
+| **Currency** | Optional (defaults to USD) | `currency`, `currency_code` |
+| **Timestamp** | Optional (defaults to now) | `charged_at`, `created_at`, `paid_at`, `timestamp`, `occurred_at` |
+| **Buyer name** | Optional | `first_name` / `last_name`, `customer_name`, `name` |
+| **Visitor ID** | Optional (for 99% match confidence) | `pl_vid` |
+
+Nested payloads work too — e.g., `data.customer.email` or `order.total_amount`. The normalizer walks common nesting paths automatically.
+
+### Example minimal payload
+
+```json
+{
+  "event_id": "txn_abc123",
+  "email": "alice@example.com",
+  "amount": 4900,
+  "currency": "USD"
+}
+```
+
+Amount is in **cents** (or the smallest currency unit). `4900` means $49.00 USD.
+
+<Callout type="info">
+  If your platform supports it, also pass `pl_vid` — the visitor ID cookie PartialLeads sets on the buyer's browser during their pre-purchase session. The pixel writes it to `localStorage` as `pl_vid`. If you can read it client-side (via a custom field on the checkout form, for example), include it in the webhook payload. Match confidence jumps to ~99% when `pl_vid` is present.
+</Callout>
+
+---
+
+## What happens when a webhook arrives
+
+Each Universal Webhook delivery flows through:
+
+1. **Bearer token check** — `X-PartialLeads-Token` is compared against the stored secret (constant-time)
+2. **Idempotency check** — `event_id` is deduplicated against past deliveries; same `event_id` returns 200 immediately without re-processing
+3. **Normalization** — the payload is mapped through the alias set to the standard `NormalizedPurchase` shape
+4. **Strict validation** — must have `event_id`, at least one identity (`email` or `phone`), and `amount > 0`. Otherwise we return 400 with a descriptive error
+5. **Session match** — buyer's identity is matched to a recent PartialLeads session via the identity graph (30-day window)
+6. **Attribution + fan-out** — the purchase enters the same pipeline as native Shopify / WooCommerce / Stripe purchases:
+   - First-touch + last-touch attribution computed via the cluster resolver
+   - Meta CAPI dispatch if a config with `automatic` send mode exists for this domain
+   - Pinterest CAPI dispatch if a config exists
+   - Google Sheets row appended if Google Ads Sheets is connected
+   - Outbound webhook fan-out fires the `purchase` trigger to all matching connections
+
+If validation fails, we return a 400 with the error message. Successful (or idempotent) deliveries always return 200 — your platform shouldn't retry-storm us on internal bugs.
+
+---
+
+## Platform-specific notes
+
+These platforms have been tested against the alias set:
+
+- **ThriveCart** — works out of the box. ThriveCart's webhook UI lets you add custom headers; paste `X-PartialLeads-Token` there
+- **Kajabi** — works for "Purchase made" trigger. Use the affiliate-level webhook if you sell at the offer level
+- **SamCart** — works for "Order completed". SamCart's webhook is per-product; add the URL to every product you sell
+- **PayMongo** — works for `payment.paid` events. Their dashboard's webhook signing secret is unrelated to ours — leave it empty (we use the custom header)
+- **ClickFunnels** — works for funnel-level webhooks on the "Purchased" trigger
+- **Magento** — works with the REST API webhook plugin (the built-in Magento webhooks need normalization in your own middleware first)
+
+Other platforms work too as long as they emit a JSON body with `event_id` + identity + amount.
+
+---
+
+## What you'll see in PartialLeads
+
+- **[Purchases](https://partialleads.com/dashboard/purchases)** — every order from your Universal Webhook connection, attributed back to its originating ad click or organic source. Manual re-match controls available per purchase
+- **[Universal Webhook integration page](https://partialleads.com/dashboard/integrations/universal-webhook)** — per-connection activity log: recent deliveries, normalization warnings, response codes
+- **[Attribution](https://partialleads.com/dashboard/attribution)** — purchases roll into the channel wedge chart alongside native integrations
+- **[Conversions](https://partialleads.com/dashboard/conversions)** — Meta CAPI / Pinterest / Google Sheets dispatches from these purchases appear in their respective destination logs
+
+---
+
+## Troubleshooting
+
+### "Connection stuck on Pending first event"
+
+- Confirm your platform's webhook is **Active**, not paused or disabled
+- Trigger a test order (or use your platform's "Send test webhook" button if it has one) to verify firing
+- Check your platform's webhook log for the response — a 401 means the `X-PartialLeads-Token` header is wrong or missing; a 400 means the payload didn't pass validation
+
+### "401 Unauthorized" responses
+
+The `X-PartialLeads-Token` header is wrong, missing, or pointing to a rotated secret. Open the connection card in PartialLeads and check whether you recently rotated the token. If yes, paste the new value into your platform's webhook config.
+
+### "400 Bad Request — event_id required"
+
+Your platform isn't sending an `event_id` field under any of our accepted aliases. Map your platform's transaction-identifier field to one of: `event_id`, `id`, `transaction_id`, `order_id`, `payment_id`, `uuid`. If your platform's webhook config has a "transform" or "scripting" feature, use it to rename the field before sending.
+
+### "400 Bad Request — identity required"
+
+Your payload doesn't have an `email` or `phone` under any of our accepted aliases. This is the most common failure for platforms that send custom JSON shapes. Common fix: ensure the payload includes `email` or `customer_email` at the top level (or one level deep under `data.email`, `customer.email`, etc.).
+
+### "Purchases arriving but unmatched"
+
+The purchases are reaching PartialLeads but our identity graph can't find a matching session. Causes:
+
+- Buyer didn't visit your funnel with the pixel loaded before purchasing
+- Buyer used a different email at checkout than the one they used during their pre-purchase session
+- 30-day match window expired
+
+You can manually re-match a purchase to any session via the [Purchases](https://partialleads.com/dashboard/purchases) page detail slideout.
+
+### "Same event firing multiple times"
+
+This is by design IF your platform sends the same `event_id` more than once — we return 200 idempotently without re-processing. If you're seeing duplicate **purchases** in the dashboard, your platform is sending the same logical purchase with different `event_id` values. Check the platform's webhook docs — typically there's a "transaction-id" field that should be stable across retries.
+
+---
+
+## Not yet shipped
+
+- **Operator-driven payload mapping UI** — Phase 2 of the Universal Webhook spec will add a sample-payload storage layer + dashboard UI for mapping non-standard payload shapes to PartialLeads fields. Today, if your platform's payload doesn't match the alias set, you need a middle layer (Zapier / Make / your own backend) to reshape it
+- **HMAC signature verification** — we use bearer token auth via `X-PartialLeads-Token` rather than HMAC. Bearer is simpler and sufficient at our scale; HMAC parity with Shopify / WooCommerce can be added if customers need it
+- **Per-platform pre-built templates** — no one-click "Connect ThriveCart" yet. Every connection is generic; platform-specific quirks live in the docs (above) rather than as dashboard presets
+- **Inbound lead events** (vs. purchase events) — Universal Webhook currently only handles **purchase** signals. To send leads from an unsupported platform, use the [outbound webhook in reverse](/guides/lead-generation/) — fire your platform's lead webhook to a Zapier / Make middleware that POSTs to your existing PartialLeads outbound flow
+
+---
+
+Need the pixel installed first? See [Install](https://partialleads.com/dashboard/install). Already running PartialLeads? Open your [Dashboard](https://partialleads.com/dashboard). Stuck? Email [support@partialleads.com](mailto:support@partialleads.com).

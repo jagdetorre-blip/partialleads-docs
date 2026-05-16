@@ -1,0 +1,135 @@
+import { Callout, Steps } from 'nextra/components'
+
+# Pinterest Conversions API
+
+Pinterest's Conversions API (v5) is the server-side equivalent of the Pinterest tag. PartialLeads sends your purchase and lead events directly to Pinterest's servers, so your Pinterest campaigns can optimize against real conversions even when the browser tag is blocked.
+
+This is most useful for **ecommerce stores with a Pinterest ads strategy** — visual products (apparel, home goods, beauty, food) tend to perform best on Pinterest.
+
+<Callout type="warning">
+  Pinterest Conversions API requires a **Starter plan or higher**. Free-tier accounts won't see the Pinterest config page.
+</Callout>
+
+## What you'll need
+
+- A Pinterest Business account
+- A Pinterest Ad Account ID (the 18-digit numeric ID, not your Pinterest profile name)
+- A Pinterest Conversions API **access token**
+- Your domain authorized in PartialLeads ([see Domain setup](/using/setup/domain/))
+- A PartialLeads plan at Starter or higher
+
+## Get a Pinterest access token
+
+Pinterest's developer console is the canonical place to generate API tokens.
+
+<Steps>
+
+### Open Pinterest Developer Console
+
+Go to [developers.pinterest.com/apps](https://developers.pinterest.com/apps) and sign in with your Pinterest Business account.
+
+### Create or pick an app
+
+If you've never created a Pinterest API app, click **Create app**. Name it something memorable (e.g., "PartialLeads CAPI"). Pinterest will create the app shell.
+
+### Request the Conversions scopes
+
+In your app's settings, request the following scopes:
+
+- `ads:read`
+- `conversions:write`
+
+These are the minimum scopes for Conversions API. Pinterest may require business verification before granting these scopes — follow the prompts.
+
+### Generate an access token
+
+Use Pinterest's OAuth flow or token generation tool (in the app settings) to generate a token with the approved scopes. Pinterest's token format starts with `pina_...`.
+
+Copy the token immediately and store it securely.
+
+</Steps>
+
+<Callout type="info">
+  Pinterest tokens expire by default (typically 30 days). You may need to refresh the token periodically, or use Pinterest's refresh token flow. PartialLeads will surface a notification if a token expires.
+</Callout>
+
+## Get your Ad Account ID
+
+In Pinterest Ads Manager, your Ad Account ID appears in the URL when you're viewing your account:
+
+```
+https://ads.pinterest.com/advertiser/{18_DIGIT_ID}/...
+```
+
+Copy the 18-digit number — that's your Ad Account ID.
+
+## Configure Pinterest in PartialLeads
+
+<Steps>
+
+### Open the Pinterest page
+
+[Dashboard → Conversions → Pinterest](https://partialleads.com/dashboard/conversions/pinterest).
+
+### Click "Add config"
+
+A configuration form opens.
+
+### Fill in the fields
+
+- **Domain** — pick from your authorized domains
+- **Ad account ID** — the 18-digit number from Pinterest Ads Manager
+- **Access token** — the `pina_...` token you generated
+- **Event name** — Pinterest's standard events:
+  - `checkout` for completed purchases
+  - `lead` for completed lead-gen submissions
+  - `add_to_cart` for cart additions
+  - `signup` for account signups
+  - Or pick a custom event from Pinterest's full list
+
+### Save
+
+The first matching event will dispatch to Pinterest within seconds.
+
+</Steps>
+
+## What you'll see after setup
+
+- **[Conversions → Pinterest](https://partialleads.com/dashboard/conversions/pinterest)** — every config with its recent activity
+- **Activity log** (inside each config card) — every dispatched event, HTTP response code, and Pinterest's match acknowledgement
+- **In Pinterest Ads Manager** — your conversion column will start showing server-side events within a few hours of first activation
+
+## Multiple ad accounts?
+
+You can create multiple Pinterest CAPI configs if you run multiple ad accounts. Each maps **one domain → one ad account**. Use this if:
+
+- You manage Pinterest ads for multiple sub-brands
+- You're testing two ad accounts on the same domain (one for retarget, one for cold)
+
+## Common questions
+
+### "Pinterest says it received the event, but campaign metrics didn't move"
+
+Pinterest, like Meta, deduplicates server-side events against your browser tag. If your Pinterest tag ALSO fired the same event, they collapse into one — that's correct behavior. Check campaign metrics 24-48 hours after the event for accurate counts.
+
+### "My access token expired"
+
+Pinterest tokens expire on a 30-day rolling schedule by default. PartialLeads will surface an activity log error when this happens. Generate a new token using the steps above and update the config in PartialLeads.
+
+For long-term automation, use Pinterest's **refresh token** flow — it allows tokens to auto-renew. Pinterest's docs at [developers.pinterest.com/docs/getting-started/authentication/](https://developers.pinterest.com/docs/getting-started/authentication/) cover this.
+
+### "My Ad Account ID gives a 400 error"
+
+Pinterest's Ad Account ID is 18 digits. Some setups confuse it with the Pinterest Business profile ID (different format). Double-check by viewing the URL in Pinterest Ads Manager — the long number after `/advertiser/` is what you need.
+
+### "Pinterest only — no automatic_booking support?"
+
+Right — `automatic_booking` (for Calendly call bookings) is currently Meta-only. Pinterest's CAPI doesn't have rule-based trigger infrastructure yet. If you book sales calls and want them to fire to Pinterest, contact support — there's a manual dispatch path.
+
+### "Pinterest dedup looks weak compared to Meta"
+
+Pinterest's Conversions API uses a different idempotency model than Meta. The standard Pinterest browser tag and CAPI events use the same `event_id` for deduplication, but Pinterest's dedup window is narrower (24 hours) than Meta's. If you see duplicates, check that your Pinterest tag and PartialLeads' CAPI are firing within the same dedup window.
+
+---
+
+Done with Pinterest? Set up [Meta](/using/setup/conversions/meta/) or [Google](/using/setup/conversions/google/) next, or jump back to the [Conversions overview](/using/setup/conversions/).

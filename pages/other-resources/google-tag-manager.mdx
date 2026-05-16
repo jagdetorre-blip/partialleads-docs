@@ -1,0 +1,81 @@
+import { Callout, Steps } from 'nextra/components'
+
+# Install with Google Tag Manager
+
+Google Tag Manager (GTM) is a container that holds all your marketing tags — Google Analytics, Facebook pixel, PartialLeads, etc. — in one place. If you already have GTM on your site, adding PartialLeads is the cleanest way to install it.
+
+If you don't have GTM yet, the official setup guide is at [tagmanager.google.com](https://tagmanager.google.com). It's free and takes about 5 minutes to add to your site.
+
+## When to use this method
+
+Choose GTM if:
+
+- You already have GTM installed on your site
+- You want to manage multiple tracking tools through one interface
+- You want to install PartialLeads on a **Typeform** form (GTM is the cleanest path for Typeform)
+- Your platform doesn't have a built-in "header code" feature
+
+If you only want PartialLeads and nothing else, the direct-install method for your platform (Shopify, WordPress, etc.) is simpler.
+
+## Step-by-step
+
+<Steps>
+
+### Open your GTM workspace
+
+Go to [tagmanager.google.com](https://tagmanager.google.com) and open the container that's installed on your site.
+
+### Create a new tag
+
+In the left sidebar, click **Tags**, then click the **New** button (top-right of the tag list).
+
+### Pick "Custom HTML"
+
+In the tag configuration screen, click **Tag Configuration**. From the list of tag types that slides in, scroll down to **Custom** and pick **Custom HTML**.
+
+### Paste the tracking code
+
+In the HTML field, paste the PartialLeads tracking code:
+
+```html
+<script>window.PartialLeadsConfig={apiKey:"pl_yourkey"};</script>
+<script src="https://api.partialleads.com/px-universal.js" async></script>
+```
+
+### Set the trigger
+
+Click **Triggering** below the HTML field.
+
+Choose **All Pages** as the trigger. This makes the tag fire on every page view across your site.
+
+### Name and save
+
+Give the tag a name (e.g., "PartialLeads Tracking") at the top of the screen.
+
+Click **Save**.
+
+### Publish your container
+
+GTM changes are staged until you publish them. Click **Submit** in the top-right.
+
+Add a description like "Added PartialLeads tracking" so you have a paper trail.
+
+Click **Publish**.
+
+</Steps>
+
+## How to know it's working
+
+Open your live site in a new incognito or private browser tab. Go back to your PartialLeads dashboard's [Setup](https://partialleads.com/dashboard/install) page.
+
+Within 5 seconds, the verification panel should switch from **Waiting for first signal** to **Script installed**.
+
+## Preview mode for testing
+
+GTM has a Preview mode that lets you test tag firing before publishing. Click **Preview** in the top-right of GTM and enter your site's URL. A new window opens with debug info showing which tags fired on each page.
+
+If you see "PartialLeads Tracking" in the "Tags Fired" section, the tag is working correctly. You can then click **Publish** for real.
+
+---
+
+[← Back to all install guides](/other-resources/) · [Troubleshooting →](/other-resources/troubleshooting/)

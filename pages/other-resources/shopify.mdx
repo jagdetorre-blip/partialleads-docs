@@ -1,0 +1,75 @@
+import { Callout, Steps } from 'nextra/components'
+
+# Install on Shopify
+
+Shopify is the simplest install. The tracking code goes into your theme's `theme.liquid` file, and Shopify automatically loads it on every page of your store.
+
+<Callout type="info">
+  This page only covers installing the **basic tracking pixel**. If you want PartialLeads to capture purchase events from your Shopify store (and send them to Meta, Pinterest, Google Ads), you also need to connect the Shopify integration — see the [E-Commerce guide](/guides/ecommerce/).
+</Callout>
+
+## Step-by-step
+
+<Steps>
+
+### Open your Shopify admin
+
+Log into your Shopify admin at `https://admin.shopify.com`.
+
+### Go to Themes
+
+In the left sidebar, click **Online Store**, then click **Themes**.
+
+You'll see your active theme at the top of the page.
+
+### Edit your theme code
+
+Next to your active theme, click **Actions**, then **Edit code**.
+
+A code editor opens with a list of files on the left.
+
+### Open `theme.liquid`
+
+In the file list, scroll to the **Layout** section and click **`theme.liquid`**.
+
+This is your store's master template. Whatever you put here loads on every page.
+
+### Paste the tracking code
+
+Find the closing `</head>` tag (use Ctrl+F or Cmd+F to search if you can't see it).
+
+Paste the PartialLeads tracking code on a new line **right before** `</head>`. So the result looks like:
+
+```html
+  ...other stuff in your head...
+
+  <script>window.PartialLeadsConfig={apiKey:"pl_yourkey"};</script>
+  <script src="https://api.partialleads.com/px-universal.js" async></script>
+</head>
+```
+
+### Click Save
+
+Click the **Save** button in the top-right of the code editor.
+
+The change is live immediately — no need to publish anything.
+
+</Steps>
+
+## How to know it's working
+
+Open your store's homepage in a new incognito or private browser tab. Then go back to your PartialLeads dashboard's [Setup](https://partialleads.com/dashboard/install) page.
+
+Within 5 seconds, the verification panel should switch from **Waiting for first signal** to **Script installed**.
+
+If it doesn't, see [Troubleshooting](/other-resources/troubleshooting/).
+
+## What about checkout events?
+
+The basic tracking pixel only sees pages on your storefront — your home page, product pages, collection pages, blog posts. It does **not** see what happens inside Shopify's checkout (Shopify locks checkout down to their own pixel system).
+
+If you want to capture checkout abandons and purchase events, you need the full Shopify integration. It uses Shopify's separate "Customer Events" pixel system plus webhook subscriptions. See the [E-Commerce guide](/guides/ecommerce/) for the full setup.
+
+---
+
+[← Back to all install guides](/other-resources/) · [Troubleshooting →](/other-resources/troubleshooting/)

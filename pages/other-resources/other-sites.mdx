@@ -1,0 +1,120 @@
+import { Callout, Steps } from 'nextra/components'
+
+# Install on other sites
+
+This page covers everything that isn't Shopify, WordPress, Webflow, GoHighLevel, Typeform, or Google Tag Manager.
+
+The general rule: you're looking for a place in your platform's settings called **"Head code"**, **"Custom HTML"**, **"Header script"**, or similar. Paste the PartialLeads tracking code there.
+
+## Plain HTML / static sites
+
+If you write HTML by hand (or use a static site generator like Hugo, Jekyll, Eleventy, Astro), the tracking code goes between the `<head>` and `</head>` tags of every page.
+
+<Steps>
+
+### Open your HTML files
+
+Find the file that contains your site's `<head>` tag. For most sites this is `index.html` or a shared layout file (e.g., `layout.html`, `base.html`, `default.html`, `_document.tsx`).
+
+### Paste before `</head>`
+
+Add the PartialLeads tracking code on a new line just before `</head>`:
+
+```html
+  ...other things in your head...
+
+  <script>window.PartialLeadsConfig={apiKey:"pl_yourkey"};</script>
+  <script src="https://api.partialleads.com/px-universal.js" async></script>
+</head>
+```
+
+### Save and re-upload
+
+Save the file. Re-upload to your server, rebuild your static site, or commit and deploy — whatever your normal publish flow is.
+
+</Steps>
+
+## Squarespace
+
+<Steps>
+
+### Open your site's settings
+
+In Squarespace, click **Settings** in the left sidebar of your site dashboard.
+
+### Go to Code Injection
+
+Click **Advanced**, then **Code Injection**.
+
+### Paste in the Header box
+
+You'll see two text areas — **Header** and **Footer**. Paste the PartialLeads tracking code in the **Header** box.
+
+### Save
+
+Click **Save** at the top.
+
+</Steps>
+
+<Callout type="info">
+  Code Injection is available on Squarespace **Business** plans and higher. If you're on the Personal plan, you'll need to upgrade or use [Google Tag Manager](/using/setup/google-tag-manager/) instead (and inject GTM via Google's Squarespace integration).
+</Callout>
+
+## Wix
+
+<Steps>
+
+### Open Marketing & SEO
+
+In your Wix dashboard, click **Marketing & SEO** in the left sidebar.
+
+### Go to Marketing Integrations
+
+Click **Marketing Integrations**.
+
+### Find "Custom code"
+
+Scroll until you see **Custom Code** (sometimes called "Custom Tags"). Click **Connect** or **Add**.
+
+### Paste the tracking code
+
+Paste the PartialLeads tracking code into the code field. Set the location to **Head** (not Body or Body End) and the trigger to **All pages**.
+
+### Apply and save
+
+Click **Apply**.
+
+</Steps>
+
+<Callout type="warning">
+  Wix's custom code feature requires their **Premium plan** (any tier — Combo, Unlimited, etc.). Free Wix sites can't add custom code. If you're on a free Wix site, you'd need to upgrade or migrate to another platform.
+</Callout>
+
+## ClickFunnels
+
+In ClickFunnels: open your funnel, click **Settings**, then **Tracking Codes**. Paste the PartialLeads tracking code into the **Head Tracking Code** field.
+
+This applies to every page in the funnel automatically. No per-page setup needed.
+
+## Kajabi
+
+In Kajabi: **Settings → Site Details → Code Editor**. Paste the PartialLeads tracking code in the **Head Code** field. Save.
+
+## Other platforms
+
+Most website builders have a "custom code" or "header code" feature somewhere in their settings. Look for those words in your platform's documentation.
+
+If you really can't find a place to paste custom code, your platform might not support it directly. In that case:
+
+- **Try Google Tag Manager** — many platforms support GTM even when they don't support arbitrary custom code. See the [Google Tag Manager guide](/using/setup/google-tag-manager/).
+- **Email support** — we'll figure out the right path for your specific platform: [support@partialleads.com](mailto:support@partialleads.com).
+
+## How to know it's working
+
+Whatever platform you used, the verification is the same. Open your live site in a new incognito or private browser tab. Go back to your PartialLeads dashboard's [Setup](https://partialleads.com/dashboard/install) page.
+
+Within 5 seconds, the verification panel should switch from **Waiting for first signal** to **Script installed**.
+
+---
+
+[← Back to all install guides](/other-resources/) · [Troubleshooting →](/other-resources/troubleshooting/)

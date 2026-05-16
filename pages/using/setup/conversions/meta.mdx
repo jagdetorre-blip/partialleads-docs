@@ -1,0 +1,143 @@
+import { Callout, Steps } from 'nextra/components'
+
+# Meta Conversion API
+
+Meta's Conversion API (CAPI) is the server-side equivalent of the Facebook Pixel. Instead of relying on a browser script that ad blockers can kill, PartialLeads sends your conversion events directly to Meta's servers — Facebook and Instagram ads optimize against real outcomes either way.
+
+This is available on **every PartialLeads plan**, including Free.
+
+## What you'll need
+
+- A Meta Business Manager account
+- A Meta Pixel set up in Events Manager (you almost certainly already have one if you've run Meta ads)
+- A **Meta access token** with permission to send events to your pixel
+- Your domain authorized in PartialLeads ([see Domain setup](/using/setup/domain/))
+
+## Get a Meta access token
+
+This is the trickiest part of the setup. Meta requires a **system user** token with permission scoped to your pixel. Free or random Facebook tokens won't work.
+
+<Steps>
+
+### Open Meta Business Settings
+
+Go to [business.facebook.com/settings](https://business.facebook.com/settings) and pick your business account.
+
+### Create a system user
+
+In the left sidebar: **Users → System Users → Add**. Name it something memorable (e.g., "PartialLeads CAPI"). Role: **Admin**.
+
+### Assign your pixel to the system user
+
+Click the system user, then **Assign Assets**. Pick **Pixels** from the dropdown, select your pixel, and grant **Manage Pixel** permission.
+
+### Generate a token
+
+Still on the system user page, click **Generate New Token**. Pick the app associated with your pixel. Required scope: **ads_management** (this is the standard scope for CAPI).
+
+**Important:** check the **Never Expires** box. Tokens without expiration are required — short-lived tokens will silently fail in production a few months after setup.
+
+### Copy the token
+
+Meta only shows the token ONCE. Copy it immediately and paste it into your password manager. If you lose it, you'll need to generate a new one.
+
+</Steps>
+
+<Callout type="warning">
+  The token is a long string starting with `EAA...`. Keep it private — it grants permission to fire events on your pixel.
+</Callout>
+
+## Configure Meta Conversion API in PartialLeads
+
+<Steps>
+
+### Open the Meta Conversion API page
+
+[Dashboard → Conversions → Meta Conversion API](https://partialleads.com/dashboard/conversions/meta-capi).
+
+### Click "Add config"
+
+A configuration form opens.
+
+### Fill in the basic fields
+
+- **Domain** — pick from your authorized domains
+- **Pixel ID** — from your Meta Events Manager (looks like a 15-16 digit number)
+- **Access token** — the system user token you just generated
+- **Event name** — pick from Meta's standard event list. Most common:
+  - `Lead` for lead-gen funnels
+  - `Purchase` for ecommerce stores
+  - `Schedule` for sales call bookings
+  - `Subscribe` for SaaS / membership signups
+  - Or pick a custom event code your campaigns use
+
+### Pick a send mode
+
+- **Manual** — events queue up; you review and dispatch them one at a time from the Leads page. Useful if you want quality control before firing
+- **Automatic** — every matching event fires CAPI in real time. The default for most setups
+- **Automatic on booking** — only fires when a Calendly booking matches a session (for sales-call attribution)
+
+For most ecommerce or lead-gen setups, use **Automatic**.
+
+### Optional — trigger rules
+
+If you only want certain events to fire CAPI, add rules. You can match on:
+
+- **UTM source** (e.g., only fire for `facebook` or `instagram` traffic)
+- **UTM campaign** (e.g., only campaigns containing `cold` or `retarget`)
+- **URL path** (e.g., only the `/webinar` landing page)
+- **AI persona match score** (e.g., only leads scoring above 60)
+
+Rules can combine with AND or OR logic. Common pattern: "Only fire CAPI for completed leads from paid Meta traffic with persona score > 50".
+
+### Optional — Shopify ecommerce events
+
+If you have Shopify connected, you'll see a **Shopify ecommerce events** toggle. Turn this on for purchase/cart events from your store to automatically dispatch to Meta with full line-item context (products, prices, currencies).
+
+### Optional — Test event code
+
+While testing, paste Meta's **Test Event Code** (from Events Manager → Test Events tab) here. Events with a test code show up in Meta's Test Events viewer but DON'T affect your real campaign data. Remove the code once you're confident the setup is working.
+
+### Save
+
+The next matching event will dispatch to Meta within seconds. Watch the **Activity** section on the same page to see deliveries land.
+
+</Steps>
+
+## Multiple pixels?
+
+You can create multiple Meta CAPI configs. Each maps **one domain → one pixel**. Use this if:
+
+- You run multiple brands under different pixels
+- You want different events to fire to different pixels (e.g., one pixel for ecommerce purchases, another for lead capture)
+- You're A/B-testing two pixels on the same domain
+
+Deduplication is automatic — `(session_id, config_id)` is the dedup key, so toggling pixels on/off won't cause duplicate events.
+
+## What you'll see after setup
+
+- **[Conversions → Meta Conversion API](https://partialleads.com/dashboard/conversions/meta-capi)** — every configured pixel with its recent activity
+- **Activity log** (inside each config card) — every dispatched event, HTTP response code, dedup state, and event match score (Meta returns this on every event)
+- **Each individual lead** — shows whether Meta CAPI fired for it, and a "Re-send to Meta" button if you need to retry
+
+## Common questions
+
+### "Meta says it received the event, but my campaign metrics didn't move"
+
+Meta de-duplicates server-side events against your browser pixel. If your pixel ALSO fired the same event, they collapse into one — that's correct behavior. The campaign metric will move; check the **Events** tab in Meta Events Manager 24-48 hours later.
+
+### "Event Match Score is low"
+
+Meta's Event Match Score measures how good your customer data is. Higher = better. PartialLeads sends every available signal (email, phone, IP, user agent, click ID, etc.) so your score should usually be 7-9 out of 10. If it's lower, check whether your forms are collecting both email AND phone — sending both improves matching.
+
+### "My access token expired"
+
+Check whether "Never Expires" was selected when you generated it. If not, re-generate the token following the steps above. Update the config in PartialLeads — your historical dispatches stay intact, only future ones use the new token.
+
+### "Events are firing but Conversions API shows 'in review'"
+
+Meta reviews new pixels' CAPI traffic for a few days after first activation. This is normal. Events still count, they just appear under "in review" until Meta clears the pixel.
+
+---
+
+Done with Meta? Set up [Google](/using/setup/conversions/google/) or [Pinterest](/using/setup/conversions/pinterest/) next.

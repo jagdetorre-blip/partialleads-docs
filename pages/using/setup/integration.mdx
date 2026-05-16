@@ -1,0 +1,107 @@
+import { Callout, Cards } from 'nextra/components'
+
+# Integration
+
+Integrations connect PartialLeads to the platforms your business already uses — your ecommerce store, your CRM, your booking tool. Once connected, we receive events from these platforms (purchases, contacts, bookings) and attribute them back to the visitor session that started everything.
+
+You don't need to set up every integration — pick the ones that match your business.
+
+## Where to find it
+
+Open [Dashboard → Integrations](https://partialleads.com/dashboard/integrations) in your PartialLeads account.
+
+You'll see cards for each available integration. Connected integrations show a green "Connected" badge; unconnected ones show "Not connected".
+
+## Available integrations
+
+### Ecommerce platforms
+
+<Cards>
+  <Cards.Card title="Shopify" href="/guides/ecommerce/">
+    Online stores. Captures abandoned checkouts plus full purchase events. Most-tested integration.
+  </Cards.Card>
+  <Cards.Card title="WooCommerce" href="/guides/ecommerce/">
+    WordPress-based stores. Same coverage as Shopify via the WooCommerce webhook system.
+  </Cards.Card>
+  <Cards.Card title="Stripe" href="/guides/ecommerce/">
+    Custom checkout flows or SaaS billing. Currently sandbox-only — live mode pending business activation.
+  </Cards.Card>
+</Cards>
+
+### CRM and booking
+
+<Cards>
+  <Cards.Card title="GoHighLevel" href="/guides/lead-generation/">
+    CRM + funnel builder. Receives payment events from your GHL workflows. Common for coaching and consulting businesses.
+  </Cards.Card>
+  <Cards.Card title="Calendly" href="/guides/bookings/">
+    Sales call bookings. Attributes booked calls back to the ad click that brought the prospect in.
+  </Cards.Card>
+</Cards>
+
+### Anything else
+
+<Cards>
+  <Cards.Card title="Universal Webhook" href="/guides/custom-platforms/">
+    Catch-all for platforms PartialLeads doesn't natively integrate with (ThriveCart, Kajabi, SamCart, ClickFunnels payments, custom Stripe apps, and many more).
+  </Cards.Card>
+</Cards>
+
+## How to connect one
+
+The specific steps vary by integration — each has its own connect flow. The pattern is similar:
+
+1. **Click the integration card** in [Dashboard → Integrations](https://partialleads.com/dashboard/integrations)
+2. **Authorize the connection** — most use OAuth (Calendly, eventually Stripe), some use webhook + signing secret (Shopify, WooCommerce, GoHighLevel)
+3. **Configure your platform's side** — paste a webhook URL into your platform, copy back the signing secret if needed
+4. **Wait for the first event** — connection status flips from "Pending first event" to "Active" the moment data starts flowing
+
+For the detailed setup walkthrough of each integration, follow the guide links above.
+
+<Callout type="info">
+  You can connect multiple integrations at once. A typical ecommerce + lead-gen business might run Shopify + Calendly + Universal Webhook simultaneously — they don't conflict, and each feeds into the same lead/purchase pipeline.
+</Callout>
+
+## Multi-store / multi-connection support
+
+Several integrations support multiple connections under one PartialLeads account:
+
+- **Shopify** — unlimited stores, one connection per store
+- **WooCommerce** — unlimited stores
+- **GoHighLevel** — unlimited workflows
+- **Universal Webhook** — one connection per platform per domain
+
+The Integrations page shows all your active connections side by side. Each connection has its own webhook URL, signing secret, and activity log — so an issue with one store doesn't affect another.
+
+## Disconnecting
+
+Each integration has a **Disconnect** button on its detail page. Disconnecting:
+
+- Stops new events from being received
+- Keeps historical data in your dashboard (you can still browse purchases, leads, and attribution from disconnected connections)
+- Revokes the signing secret immediately
+
+If you disconnect by accident, you can re-connect using the same steps as the original setup. Historical attribution data is preserved.
+
+## Common questions
+
+### "Which integration do I need?"
+
+- **You sell physical or digital products via Shopify or WooCommerce** → connect that platform
+- **You take payments via GoHighLevel funnels** → connect GoHighLevel
+- **You book sales calls via Calendly** → connect Calendly
+- **You're on a platform not listed here** → use the Universal Webhook
+
+### "I have a custom checkout that isn't Shopify or WooCommerce"
+
+Use the [Universal Webhook](/guides/custom-platforms/). Almost any platform that can send an outbound webhook with `event_id`, `email`, and `amount` will work — we have generous field aliases for 70%+ of common SaaS platforms.
+
+### "Do I need an integration if I just want to capture leads?"
+
+No — leads flow into PartialLeads via the tracking pixel alone. Integrations are for **purchase events**, **booking events**, and platforms where leads live behind an iframe (like GoHighLevel forms).
+
+If you just want partial-form capture on your website, you can skip Integration entirely and just use [Domain](/using/setup/domain/) + the pixel install.
+
+---
+
+Next up: [Webhook](/using/setup/webhook/) — send captured leads outbound to Zapier, Make, or your CRM.

@@ -1,0 +1,111 @@
+import { Callout, Steps } from 'nextra/components'
+
+# Domain
+
+Before PartialLeads can do anything useful, you need to tell it which websites belong to your business. This is called **authorizing a domain**.
+
+Without an authorized domain, the tracking pixel won't capture leads, integrations won't connect, and conversion APIs won't fire. It's the single prerequisite for everything else.
+
+## Why this exists
+
+Two reasons:
+
+1. **Security.** PartialLeads' tracking pixel uses your account's API key. If your key ever leaks (it shouldn't, but mistakes happen), an attacker can't use it on their own site to spam leads into your account — we'll reject anything from a domain you haven't authorized.
+
+2. **Multi-domain support.** Many businesses run multiple websites — a main site, a landing page domain, a checkout funnel domain. Authorized Domains is where you list them all so PartialLeads knows they're related.
+
+## Where to find it
+
+Open [Dashboard → Authorized Domains](https://partialleads.com/dashboard/authorized-domains) in your PartialLeads account.
+
+You'll see a list of every domain you've authorized, plus an **Add domain** button.
+
+## How to add a domain
+
+<Steps>
+
+### Open Authorized Domains
+
+[Dashboard → Authorized Domains](https://partialleads.com/dashboard/authorized-domains).
+
+### Click "Add domain"
+
+A small form pops up.
+
+### Enter your domain
+
+Type your domain without `http://`, `https://`, or `www.` prefixes. Just the bare domain.
+
+✅ Good: `yourstore.com`
+❌ Bad: `https://www.yourstore.com/`
+
+### Click "Add"
+
+The domain is added in "Pending verification" state.
+
+### Trigger verification by visiting your site
+
+PartialLeads verifies your domain automatically the first time someone loads a page with your tracking pixel installed on it.
+
+Visit your site in a new browser tab. The verification panel updates within 5 seconds and the domain flips to **Verified**.
+
+</Steps>
+
+<Callout type="info">
+  If you haven't installed the tracking pixel yet, do that first — verification can't happen without the pixel firing. See [Setup overview](/using/setup/) for platform-specific install guides.
+</Callout>
+
+## Subdomains and wildcards
+
+When you authorize `yourstore.com`, PartialLeads automatically covers:
+
+- The root domain (`yourstore.com`)
+- The `www.` subdomain (`www.yourstore.com`)
+- All other subdomains (`shop.yourstore.com`, `app.yourstore.com`, `signup.yourstore.com`, etc.)
+
+You don't need to add `www.yourstore.com` separately — it's included.
+
+If you run a funnel on `customdomain.com` AND your main site on `yourstore.com` (two completely different domains), you need both listed.
+
+## How many domains can I authorize?
+
+Depends on your plan:
+
+- **Free plan** — 1 domain
+- **Starter / Growth / Pro** — multiple domains (see your plan's limit on the [Billing](https://partialleads.com/dashboard/billing) page)
+- **Agency / Enterprise** — unlimited
+
+If you've hit your plan's domain limit, you'll see an error when you try to add a new one. Upgrade to the next plan or remove an unused domain.
+
+## Removing a domain
+
+Click the **Remove** button next to any domain in the list. We'll ask for confirmation — once removed, leads from that domain stop appearing in your dashboard.
+
+<Callout type="warning">
+  Removing a domain doesn't delete leads you've already captured from it. Those stay in your dashboard and remain searchable. New leads from a removed domain are rejected at the API layer.
+</Callout>
+
+## Common questions
+
+### "Does PartialLeads know about subdomains automatically?"
+
+Yes. Authorizing `yourstore.com` covers every `*.yourstore.com`. You don't need to add subdomains separately.
+
+### "My funnel is on a different domain than my main site"
+
+Add both. They're treated as separate authorized domains. PartialLeads' identity graph can still link visitors across both domains via email or phone match.
+
+### "My domain says 'Pending verification' but I've visited my site"
+
+Three things to check:
+- Your tracking pixel is installed on the page you visited (see [Setup overview](/using/setup/))
+- The domain you typed matches your actual site's domain exactly (no extra subdomains, no typos)
+- You're visiting the actual domain — not a preview URL like `your-site.webflow.io` (you need to test against your real domain)
+
+### "Can I authorize a competitor's domain to spy on them?"
+
+No. Verification requires our pixel to fire from that domain, which only the domain owner can do.
+
+---
+
+Next up: [Integration](/using/setup/integration/) — connect your ecommerce platform, CRM, or booking tool.

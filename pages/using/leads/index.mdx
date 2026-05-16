@@ -1,0 +1,139 @@
+import { Callout } from 'nextra/components'
+
+# Leads
+
+This is your contact list. Every person who started filling out a form on your website appears here — even if they didn't finish.
+
+That's the whole point of PartialLeads. Most tracking tools only capture **completed** forms. We capture the partial ones too, so you know about every interested person, not just the ones patient enough to hit submit.
+
+## What you'll see
+
+Every lead is one row in a table. The columns from left to right:
+
+| Column | What it means |
+|---|---|
+| **Name** | First and last name, if you collected them |
+| **Email** | Always shown if we captured it. Click to copy. |
+| **Phone** | Always shown if we captured it |
+| **Journey** | A small visual timeline showing where this person came from and what pages they visited. Hover to see details |
+| **UTM** | The traffic source (Facebook Ads, Google Ads, organic, direct, etc.) |
+| **Location** | City + country, based on their IP |
+| **Device** | Mobile, desktop, or tablet |
+| **Status** | Partial or Completed (see below) |
+| **Revenue** | If they made a purchase, the total amount |
+| **Webhook** | Whether the lead has been sent to your CRM yet |
+| **Captured** | When PartialLeads first saw them |
+
+Click any row to open the full lead detail panel on the right side of the screen.
+
+## Partial vs Completed — what's the difference?
+
+This is the most important concept in PartialLeads.
+
+### Partial lead
+
+A person started filling out a form. They typed their email, maybe their phone, maybe their name — but they walked away before hitting submit. **You still have their email.**
+
+This is the lead your competitors don't have. About 60–80% of people who start a form don't finish it. With every other tool, those 60–80% are invisible. With PartialLeads, they're in this list.
+
+### Completed lead
+
+A person filled out the form and submitted it. PartialLeads sent them through to your CRM (if you wired one up). They're in your normal sales pipeline now.
+
+Both partial and completed leads appear in the same table. The **Status** column tells you which is which.
+
+<Callout type="info">
+  A partial lead can become a completed lead. If Sarah typed her email and walked away on Tuesday, then came back Thursday and finished the form, she's the same lead — her status flips from "Partial" to "Completed" automatically. You don't see two separate rows.
+</Callout>
+
+## The Journey column — what it shows
+
+The Journey is a small visual ribbon showing this person's path through your funnel. Each dot or icon is one session (one visit to your site).
+
+- **Icon** — where they came from (Meta logo = Facebook/Instagram ads, Google logo = Google ads or organic, envelope = email, etc.)
+- **Color and intensity** — strong icons (saturated) mean we have high-confidence attribution; faded icons mean we're less sure
+- **The thread connecting them** — how we know it's the same person across visits (cookie match, device fingerprint, or email match)
+
+If you see four dots, this person came back to your site four times before becoming a lead. If you see one dot, they converted on their first visit.
+
+This is more valuable than it looks. A lead who came back five times is much warmer than a lead who converted in 30 seconds. Use the Journey to prioritize your follow-up.
+
+## AI Intelligence — the persona match
+
+If you've set up AI Intelligence (see the [Lead Generation guide](/guides/lead-generation/)), each lead also has a **match badge** showing whether they fit your ideal customer.
+
+- **Strong match** — green badge. This person looks like a perfect-fit customer. Call them first.
+- **Moderate match** — blue badge. Worth following up but not your highest priority.
+- **Weak match** — gray badge. Probably not your target. You decide how aggressive to be.
+
+Click into the lead detail to see WHY they got that score — we show the specific evidence (their job title, their company size, what we found on LinkedIn, etc.).
+
+## Filtering the list
+
+Above the table, you have controls to narrow down what you see:
+
+- **Search** — type a name, email, phone, or URL fragment
+- **Date range** — last 7 days, last 30 days, custom range, or "all time"
+- **Source** — filter by traffic source (Meta, Google, direct, etc.)
+- **Domain** — if you run multiple websites, filter by which one captured the lead
+- **Device** — mobile only, desktop only, tablet only
+- **Status** — partial only, completed only, or both
+
+Filters stack. You can search for "alice" + last 30 days + Meta source to find leads named Alice from Meta ads in the last month.
+
+## What you can do with a lead
+
+When you click into a lead's detail panel, you can:
+
+### Re-send to Meta
+
+If your Meta CAPI dispatch failed (network issue, expired token, etc.), click **Send to Meta** to retry. PartialLeads will fire the conversion event again with the same data.
+
+### Re-send to Pinterest
+
+Same thing for Pinterest if you have that wired up.
+
+### Re-enrich with AI
+
+If you updated your persona description, click **Re-enrich** to score this lead against the new persona. Costs 1 enrichment credit. Re-enrichment is also useful if you've upgraded your AI plan and want better data on an older lead.
+
+### Delete the lead
+
+Permanently removes the lead from your account. Useful for GDPR requests, test data, or obvious spam. **This can't be undone.**
+
+### Export
+
+Use **Export** at the top of the leads table to download a CSV of every lead matching your current filters. Send it to your team, your investors, or your favorite spreadsheet for analysis.
+
+## Bulk actions
+
+Tick the checkbox on multiple leads (or "select all" in the header) to:
+
+- **Send selected to Meta** in one go
+- **Re-enrich selected** (consumes one credit per lead)
+- **Delete selected** (irreversible — there's a confirmation dialog)
+- **Export selected to CSV**
+
+Useful when you want to re-fire dispatches in bulk after fixing a Meta token, or clean up obvious spam leads after a bot attack.
+
+## Common questions
+
+### "I see two leads for the same person"
+
+Probably two different sessions where we couldn't link them — maybe they used a different email, or cleared cookies between visits, or visited from two different devices. PartialLeads tries to link sessions automatically (via email, phone, visitor cookie), but if the only signal is "same name" we don't link them — too many false positives.
+
+### "A lead has no email or phone"
+
+That's a visitor session, not a lead. Most tracking tools wouldn't show it. We show it because the session has UTM data and a journey, which can still be useful for attribution. If you only want rows with contact info, filter Status = Completed or Partial.
+
+### "Revenue column shows ¥0 / $0 / similar"
+
+The lead made a purchase, but the purchase amount didn't come through. This usually means your ecommerce platform isn't sending the `amount` field, or the currency wasn't included in the webhook. Check **Conversions** in the dashboard for the raw payload — usually it's a missing field on your platform's side.
+
+### "Status is Partial but the person actually completed my form"
+
+Sometimes our pixel can't detect form submission — usually on custom-built forms that don't use standard `<form>` HTML. The lead is captured, but we never saw the submit. Two options: switch to a more standard form widget, or add a thank-you page URL to PartialLeads' confirmation-page list so we flip the status on URL match.
+
+---
+
+Want to see the high-level view? Go to [Dashboard](/using/dashboard/). Need to install or re-install? Go to [Setup](/using/setup/). Stuck? Email [support@partialleads.com](mailto:support@partialleads.com).

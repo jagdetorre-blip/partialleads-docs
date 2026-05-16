@@ -1,0 +1,165 @@
+import { Callout, Steps } from 'nextra/components'
+
+# Sales Calls & Bookings Setup
+
+PartialLeads connects to Calendly via OAuth and attributes every booked call back to the ad click that brought the prospect in. When someone schedules a call, we match their email to a recent PartialLeads session and dispatch the booking to Meta CAPI as a server-side conversion event. The whole thing takes about 10 minutes once your pixel is already live.
+
+## What you'll set up
+
+- **Calendly OAuth connection** so we can receive booking webhooks in real time
+- **Meta CAPI config in `automatic_booking` send mode** so booked calls fire to Facebook + Instagram as conversions
+- **Optional trigger rules** to filter which bookings fire CAPI (e.g., only paid-traffic leads, only certain event types)
+
+## Before you start
+
+- The PartialLeads pixel installed on your funnel pages (see the [Lead Generation guide](/guides/lead-generation/) if you haven't done this yet)
+- A Calendly account on the **Standard plan or higher** — Calendly's free plan does not allow webhook integrations
+- (Optional) Your Meta pixel ID and access token
+
+<Callout type="warning">
+  Calendly's webhook API is gated behind their Standard plan. If you try to connect from a Free account, the OAuth flow will succeed but the webhook subscription fails — the connection toast will show "your Calendly account requires Standard plan or higher to use webhook integrations." Upgrade Calendly first, then connect.
+</Callout>
+
+---
+
+## Step 1 — Authorize your domain
+
+Open [Dashboard → Authorized Domains](https://partialleads.com/dashboard/authorized-domains) and confirm your funnel domain is listed. Bookings inherit attribution from your existing pixel sessions — if the domain isn't authorized, there are no sessions to match against.
+
+---
+
+## Step 2 — Connect Calendly
+
+<Steps>
+
+#### Open Integrations
+
+Go to [Dashboard → Integrations](https://partialleads.com/dashboard/integrations) and scroll to the **Calendly** card.
+
+<Callout type="info">
+  Calendly currently lives on the generic Integrations page. A dedicated `/dashboard/integrations/calendly` config page is on the roadmap — for now, OAuth and disconnect controls are on the main Integrations route.
+</Callout>
+
+#### Click "Connect Calendly"
+
+You'll be redirected to Calendly's OAuth consent screen. Sign in with the Calendly account that owns your event types.
+
+#### Approve the requested scopes
+
+Calendly will ask you to authorize PartialLeads to read your scheduled events. Approve.
+
+PartialLeads will:
+- Save your access + refresh tokens (encrypted at rest)
+- Create a webhook subscription on your Calendly organization
+- Begin receiving `invitee.created` events for every new booking
+
+You'll be redirected back to `/dashboard/integrations` with a success toast.
+
+</Steps>
+
+---
+
+## Step 3 — Wire bookings to Meta CAPI
+
+The Calendly connection gives PartialLeads booking events. To turn those into ad-platform conversions, configure Meta CAPI with the `automatic_booking` send mode.
+
+<Steps>
+
+#### Open Meta Conversion API
+
+Go to [Dashboard → Conversions → Meta Conversion API](https://partialleads.com/dashboard/conversions/meta-capi).
+
+#### Add a new config (or edit an existing one)
+
+If you already have a Meta CAPI config for capture leads, you can either reuse it or create a dedicated booking config. Dedicated configs let you fire a separate event type (e.g., `Schedule` instead of `Lead`) for booked calls.
+
+Fill in:
+- **Domain** — pick from your authorized domains
+- **Pixel ID** + **access token** — same as your other Meta configs
+- **Event name** — pick from Meta's standard events (`Schedule` is the closest match for "booked call"; you can also use a custom event code)
+- **Send mode** — **`automatic_booking`** ← this is the new mode for bookings
+
+#### Save the config
+
+The next booking that matches a PartialLeads session will dispatch to Meta within seconds.
+
+</Steps>
+
+### Optional: trigger rules
+
+If you only want certain bookings to fire CAPI — say, only bookings from paid traffic, or only bookings on your sales-call event type — add **trigger rules** when creating the config. Rules can match on:
+
+- `utm_source` (e.g., only `facebook`)
+- `utm_campaign` (e.g., only campaigns containing `webinar`)
+- `url_path` (the landing page path)
+- `score` (only AI-enriched leads above a verdict threshold)
+
+Multi-rule configs combine with `AND` / `OR` logic.
+
+---
+
+## What happens when a booking comes in
+
+The match flow runs in roughly this order:
+
+1. **Calendly fires `invitee.created`** to PartialLeads with the invitee's email, the event details, and Calendly's stable `event_id`
+2. **Idempotency check** — `calendly_webhook_events` table catches duplicate webhook deliveries (Calendly retries on 5xx) using `event_id` as the unique key
+3. **Email match** — we look up the invitee's normalized email in the `identity_graph` table, scoped to your `client_id` and a **30-day window**
+4. **Session resolution** — we pick the **most-recent** matching session as the "originating session" (one source of truth, no duplicate CAPI dispatches across sibling sessions)
+5. **Event insertion** — a `booking_scheduled` event row goes into `session_events` with the full Calendly payload as JSON data
+6. **CAPI dispatch** — for every Meta CAPI config with `send_mode = 'automatic_booking'`, we evaluate trigger rules and fire the event to Meta if rules pass
+
+If the invitee's email has never been captured by PartialLeads, the booking is recorded but no session match happens — and no CAPI fires. The booking still appears in your dashboard as an unmatched event so you have visibility.
+
+<Callout type="info">
+  The 30-day match window is hardcoded as of mig 088. Bookings from emails that haven't been seen for more than 30 days won't match — even if the visitor came through your funnel originally, the session has aged out of the cluster.
+</Callout>
+
+---
+
+## What you'll see in PartialLeads
+
+- **[Leads](https://partialleads.com/dashboard/leads)** — the originating session now shows a `booking_scheduled` event on its timeline, with the Calendly event name and start time
+- **[Conversions → Meta Conversion API](https://partialleads.com/dashboard/conversions/meta-capi)** — the `automatic_booking` config's activity log shows dispatched bookings, dedup state, and HTTP response codes
+- **[Attribution](https://partialleads.com/dashboard/attribution)** — booked calls roll into the same wedge chart as other conversions, attributed back to first-touch and last-touch sources
+
+---
+
+## Troubleshooting
+
+### "Connection failed — Standard plan required"
+
+Calendly's free plan doesn't allow webhook integrations. Upgrade Calendly to Standard or higher, then click **Connect Calendly** again. Your OAuth state is preserved — no need to redo the consent screen.
+
+### "Booking didn't fire CAPI"
+
+Most common causes, in order:
+
+1. **No matching session** — the invitee's email was never captured by your pixel. Check [Leads](https://partialleads.com/dashboard/leads) to see if their email exists in your database
+2. **30-day window expired** — the visitor came through more than 30 days ago. Their session has aged past the match window
+3. **Trigger rules didn't pass** — if you set trigger rules (UTM source, score, etc.), the booking's originating session may not match the rule conditions
+4. **Send mode wrong** — confirm the Meta CAPI config has `send_mode = 'automatic_booking'`, not `automatic` or `manual`
+
+The Meta CAPI activity log surfaces the reason for every skipped dispatch — look there for `reason: 'no_session_match'` or `reason: 'rules_no_match'`.
+
+### "Booking arrived but no CAPI config exists"
+
+The booking still lands in PartialLeads — you'll see it in [Leads](https://partialleads.com/dashboard/leads) and in `session_events`. Adding a Meta CAPI config later only fires for **future** bookings; it doesn't retroactively dispatch past events.
+
+### "Calendly OAuth keeps redirecting back with an error"
+
+Open the browser console during the redirect — Calendly returns descriptive error codes via the URL hash. The most common is `invalid_scope`: your Calendly user may not have permission to grant the requested scopes. Try connecting from the Calendly organization owner's account.
+
+---
+
+## Not yet shipped
+
+- **Pinterest CAPI for bookings** — `automatic_booking` is Meta-only as of mig 088. Pinterest CAPI doesn't have rule-based trigger infrastructure yet
+- **Dedicated Calendly config page** — OAuth + disconnect controls currently live on the generic Integrations page. A dedicated `/dashboard/integrations/calendly` with per-event-type config is on the roadmap
+- **Booking metadata filtering** — trigger rules can filter on session attribution (UTM / URL / score) but not on booking metadata (event name, duration). If you want "fire CAPI only for 60-minute discovery calls" — that needs the next iteration
+- **Visitor-ID match passthrough** — match is email-only via identity graph today. A future phase will widen to `pl_vid` cookie matching for visitors who book without re-entering their email
+- **Google Sheets dispatch for bookings** — Google Ads offline conversions for booked calls. Schema supports the `automatic_booking` trigger mode but the dispatch path is not yet wired
+
+---
+
+Need the pixel installed first? See [Install](https://partialleads.com/dashboard/install). Already running PartialLeads? Open your [Dashboard](https://partialleads.com/dashboard). Stuck? Email [support@partialleads.com](mailto:support@partialleads.com).

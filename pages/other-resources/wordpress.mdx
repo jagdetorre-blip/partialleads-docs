@@ -1,0 +1,100 @@
+import { Callout, Steps } from 'nextra/components'
+
+# Install on WordPress
+
+WordPress gives you a few ways to install the tracking code. The simplest is editing `header.php` directly — but if your theme locks that file (some commercial themes do) or you don't feel comfortable editing PHP, there's a free plugin that does it for you.
+
+## Option 1 — Edit `header.php` directly
+
+<Steps>
+
+### Open your WordPress admin
+
+Log into your site at `yoursite.com/wp-admin`.
+
+### Open the theme file editor
+
+In the left sidebar, click **Appearance**, then **Theme File Editor**.
+
+If you don't see "Theme File Editor", your hosting provider may have disabled it (some managed-WordPress hosts do this for security). Skip to Option 2 below.
+
+### Open `header.php`
+
+In the file list on the right side, click **`header.php`**.
+
+This is your theme's header template — what loads at the top of every page.
+
+### Paste the tracking code
+
+Find the closing `</head>` tag (use Ctrl+F or Cmd+F to search).
+
+Paste the PartialLeads tracking code on a new line **right before** `</head>`:
+
+```html
+  ...other stuff in your head...
+
+  <script>window.PartialLeadsConfig={apiKey:"pl_yourkey"};</script>
+  <script src="https://api.partialleads.com/px-universal.js" async></script>
+</head>
+```
+
+### Click Update File
+
+Scroll to the bottom and click **Update File**. The change is live immediately.
+
+</Steps>
+
+## Option 2 — Use the "Insert Headers and Footers" plugin
+
+If you can't edit `header.php` directly, or you don't feel comfortable with PHP, this free plugin does the job in two clicks.
+
+<Steps>
+
+### Install the plugin
+
+In WordPress admin: **Plugins → Add New**. Search for **"Insert Headers and Footers"** (by WPBeginner).
+
+Click **Install Now**, then **Activate**.
+
+### Open the plugin settings
+
+In the sidebar: **Settings → Insert Headers and Footers**.
+
+### Paste in the Headers box
+
+Find the **Scripts in Header** box. Paste the PartialLeads tracking code there:
+
+```html
+<script>window.PartialLeadsConfig={apiKey:"pl_yourkey"};</script>
+<script src="https://api.partialleads.com/px-universal.js" async></script>
+```
+
+### Save
+
+Click **Save**. Done.
+
+</Steps>
+
+<Callout type="info">
+  The plugin is maintained by WPBeginner (a reputable WordPress publisher) and is updated regularly. It works with every WordPress theme and adds zero bloat to your site — it just inserts whatever you paste into the `<head>` tag.
+</Callout>
+
+## How to know it's working
+
+Open your website's homepage in a new incognito or private browser tab. Go back to your PartialLeads dashboard's [Setup](https://partialleads.com/dashboard/install) page.
+
+Within 5 seconds, the verification panel should switch from **Waiting for first signal** to **Script installed**.
+
+## A note on caching
+
+If your site uses a caching plugin (WP Rocket, W3 Total Cache, LiteSpeed Cache, etc.), the new tracking code might be cached on old pages. Clear your site's cache after pasting the code so visitors get the updated version.
+
+Most caching plugins have a "Clear Cache" button at the top of WordPress admin. Click it once after installing the pixel.
+
+## Using WooCommerce?
+
+If you sell products via WooCommerce, you also want to connect the WooCommerce integration so PartialLeads can see your orders. See the [E-Commerce guide](/guides/ecommerce/).
+
+---
+
+[← Back to all install guides](/other-resources/) · [Troubleshooting →](/other-resources/troubleshooting/)

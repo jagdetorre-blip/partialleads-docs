@@ -1,0 +1,133 @@
+import { Callout } from 'nextra/components'
+
+# Visitors
+
+The Visitors page shows everyone who has been on your website — whether or not they filled out a form. Think of it as the wider funnel above your leads list.
+
+If [Leads](/using/leads/) is "people who interacted with a form", Visitors is "everyone who landed on a page". The Leads list is a subset of Visitors.
+
+## Where to find it
+
+Open [Dashboard → Visitors](https://partialleads.com/dashboard/visitors) in your PartialLeads account.
+
+## What's at the top
+
+Two live counters that update every 15 seconds:
+
+### Live
+
+The number of distinct visitors active on your site in the **last 5 minutes**. A small green pulsing dot when someone is on your site right now; gray when nobody is.
+
+This is your real-time pulse. If you just launched a new ad and people are clicking, this number jumps. If your site goes down, this number drops to zero.
+
+### Today
+
+The total number of distinct visitors since midnight (in your account's timezone).
+
+## What's in the table
+
+Each row is one visitor — one distinct device + browser combination, identified by our visitor cookie (`pl_vid`).
+
+The columns:
+
+| Column | What it means |
+|---|---|
+| **Source** | Where they came from — Meta ads, Google ads, organic search, direct, referral. Same icons as the Journey ribbon on the Leads page |
+| **Pages viewed** | How many pages on your site they looked at |
+| **Time on site** | Cumulative time spent across all visits |
+| **Last seen** | When they were most recently active |
+| **Engagement** (ecommerce only) | Browsed products / Added to cart / Started checkout / Abandoned checkout / Purchased |
+| **Country** | Based on IP geolocation |
+| **Device** | Mobile / desktop / tablet |
+| **Lead?** | Whether this visitor has become a lead (captured an email or phone) |
+
+Click any row to expand the visitor detail panel — see their full journey, every page visited, all UTMs, and the linked lead if they became one.
+
+## Visitor vs Lead — what's the difference?
+
+A common point of confusion. Here's the short version:
+
+| | **Visitor** | **Lead** |
+|---|---|---|
+| Definition | Anyone who loaded a page on your site | A visitor who typed an email or phone into a form |
+| Shown on | Visitors page | Leads page |
+| Has email? | Usually no | Yes (at least partial) |
+| Linked to a CRM? | No | Yes (if you set up outbound webhooks) |
+
+Every lead is a visitor. Most visitors are NOT leads (they bounced before interacting with a form).
+
+The Visitors page is where you understand the top of your funnel — where traffic is coming from, how engaged it is, whether your ads are sending qualified clicks. The Leads page is where you understand the middle/bottom — who's actually interested enough to share their info.
+
+## Filtering Visitors
+
+Above the table, you have several controls:
+
+### Click ID filter
+
+- **Any click ID** — show all visitors
+- **Paid (click ID)** — only visitors who arrived with a click ID (`fbclid`, `gclid`, `msclkid`, etc.). These are people who clicked your paid ads.
+- **Organic (no click ID)** — only visitors without a click ID. These came from organic search, social, direct, or referrals.
+
+This is the fastest way to see how your paid traffic compares to your organic traffic.
+
+### Engagement filter (ecommerce only)
+
+If you have Shopify or WooCommerce connected, you also get an Engagement filter:
+
+- **Browsed products** — visitor viewed a product page
+- **Added to cart** — visitor added something to cart
+- **Started checkout** — visitor reached the checkout page
+- **Abandoned checkout** — visitor reached checkout but didn't complete (this is your recovery list)
+- **Any engagement** — show all
+
+The **Abandoned checkout** filter is one of the most valuable on this page. These are people who came within one click of buying. With our outbound webhook setup, you can wire `checkout_started` events to your email tool and trigger automated recovery sequences.
+
+### Sort modes
+
+- **Most recent** — newest visitors first (default)
+- **Most engaged** — visitors who spent the most time, viewed the most pages
+- **Highest intent** — visitors who got furthest down your funnel (e.g., reached checkout)
+
+Switch between these depending on what you're looking for. "Most recent" for live activity. "Most engaged" for retargeting candidates. "Highest intent" for sales follow-up.
+
+## What you can do with a visitor
+
+Click into a visitor's detail panel and you can:
+
+### See their full journey
+
+Every page they visited, in order, with timestamps and UTM data. This is the source-of-truth attribution view.
+
+### See their linked lead (if any)
+
+If this visitor became a lead, the panel shows their captured email/phone and links over to the Leads page detail view.
+
+### Re-attribute manually
+
+If you spot a misattribution — say, a purchase that didn't get matched to the right ad click — you can manually link the visitor to a session or purchase.
+
+## Common questions
+
+### "Why do I have so many more Visitors than Leads?"
+
+Normal. On most sites, only 1-5% of visitors fill out a form (or end up purchasing). The other 95-99% bounce, browse without interacting, or come back later. This isn't a problem with PartialLeads — it's the underlying conversion math of the web.
+
+### "I see the same person counted twice as a Visitor"
+
+If they cleared cookies between visits, switched devices, or visited from incognito, we treat them as two separate visitors — there's no signal to link them. Once they fill out a form, the identity graph kicks in and can stitch them together.
+
+### "My Visitors number seems too low"
+
+Most likely the pixel isn't installed on every page. Visit your site in an incognito tab, check the [Setup](/using/setup/) verification panel, and look at the [Authorized Domains](https://partialleads.com/dashboard/authorized-domains) page to confirm every domain is verified.
+
+### "My Visitors number is huge but my Leads are tiny"
+
+Either your ads are sending unqualified traffic, your forms are too long, or your offer isn't compelling. The Visitors page can help diagnose — look at the **Most engaged** sort, see what those engaged visitors are looking at, and figure out whether they're hitting your form CTAs at all.
+
+### "What's a visitor_id, exactly?"
+
+PartialLeads drops a first-party cookie called `pl_vid` on every browser. It's a random string that uniquely identifies that browser. The cookie lasts 1 year. As long as the visitor doesn't clear cookies or switch devices, every visit on that browser is the same visitor_id.
+
+---
+
+Want to see the leads (visitors who became contacts)? Go to [Leads](/using/leads/). Want to set up AI scoring on your leads? Go to [AI Intelligence](/using/leads/ai-intelligence/).

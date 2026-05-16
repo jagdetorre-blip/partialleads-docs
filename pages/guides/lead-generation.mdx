@@ -1,0 +1,335 @@
+import { Callout, Steps } from 'nextra/components'
+
+# Lead Generation Setup
+
+PartialLeads captures partial form submissions on any website — the moment a visitor types their email or phone into a form, we have it. You don't need to wait for them to hit submit. Captured leads flow to Meta CAPI as Lead events, to GoHighLevel or any CRM via webhook, and into the AI Lead Intelligence engine for persona matching.
+
+## What you'll set up
+
+- **Pixel install** on every page that has a form (opt-ins, downloads, webinar registrations, applications)
+- **Outbound destinations** — Meta CAPI for ad optimization, GoHighLevel for CRM, custom webhooks for everything else
+- **AI Lead Intelligence** (optional) — research + persona scoring on every captured lead
+- **Cross-session matching** for funnels where the thank-you page lives on a different domain
+
+Most lead-gen funnels are live in 15 minutes.
+
+## Before you start
+
+- Admin access to your website (or your funnel builder)
+- Your storefront / funnel domain handy
+- (Optional) Your Meta pixel ID and access token, GHL workflow access
+
+---
+
+## Step 1 — Authorize your domain
+
+Open [Dashboard → Authorized Domains](https://partialleads.com/dashboard/authorized-domains) and add the domain where your forms live. The pixel + capture endpoints both check this list before accepting events.
+
+Verification happens automatically on the first pixel fire.
+
+<Callout type="info">
+  Running your funnel across multiple subdomains (e.g., `signup.yoursite.com` + `app.yoursite.com`)? Add the apex (`yoursite.com`) — subdomains are covered automatically.
+</Callout>
+
+---
+
+## Step 2 — Install the pixel
+
+The PartialLeads pixel is a single `<script>` tag that loads on every page with a form. It's the same script across every platform — only where you paste it differs.
+
+Open [Dashboard → Install](https://partialleads.com/dashboard/install) to get your tracking code. It looks like this:
+
+```html
+<script>window.PartialLeadsConfig={apiKey:"pl_xxxxxxxx"};</script>
+<script src="https://api.partialleads.com/px-universal.js" async></script>
+```
+
+Paste it just before the closing `</head>` tag on every page. Below are platform-specific instructions for the most common setups.
+
+### WordPress
+
+<Steps>
+
+#### Open the theme editor
+
+In WordPress admin: **Appearance → Theme File Editor**. Open `header.php`.
+
+If your theme blocks direct edits, install the **"Insert Headers and Footers"** plugin (free) and paste the code there instead.
+
+#### Paste before `</head>`
+
+Drop the two `<script>` tags in just before the closing `</head>` tag.
+
+#### Update File
+
+Click **Update File** to save. The pixel loads on the next page request.
+
+</Steps>
+
+### Webflow
+
+<Steps>
+
+#### Open project settings
+
+Webflow Designer: **Project Settings → Custom Code**.
+
+#### Paste in "Head Code"
+
+Find the **Head Code** section. Paste the two `<script>` tags there.
+
+#### Save & publish
+
+Click **Save Changes**, then publish your site. The pixel goes live with the next publish.
+
+</Steps>
+
+### Google Tag Manager
+
+<Steps>
+
+#### New Custom HTML tag
+
+In GTM: **Tags → New → Tag Configuration → Custom HTML**. Paste the two `<script>` tags into the HTML field.
+
+#### All Pages trigger
+
+Set the trigger to **All Pages** so the pixel loads on every page view.
+
+#### Save & publish
+
+Click **Save**, then publish your GTM container. The pixel fires across every page in your container's scope.
+
+</Steps>
+
+<Callout type="info">
+  GTM is the cleanest option for **Typeform**. Install GTM on your parent site, then in Typeform open the form's **Connect** tab → **Google Tag Manager**. The pixel will fire inside the embedded form automatically.
+</Callout>
+
+### GoHighLevel
+
+GHL needs the pixel in **two places** — once on the funnel pages, once inside the form. Both are required if you want to capture partial form interaction.
+
+<Steps>
+
+#### A. Funnel pages
+
+Open your funnel → **Settings → Header tracking code**. Paste the tracking code there and save. This covers every page in the funnel.
+
+#### B. Forms inside the funnel
+
+Open the form editor for any form you want to track. Add a **Code/HTML Block** to the form. Paste the **same** tracking code into the block and save.
+
+This is needed because GHL renders forms inside an iframe whose `window.location` is the GHL domain, not your funnel's. The pixel inside the form picks up UTMs from `document.referrer` and falls back to postMessage from the parent.
+
+</Steps>
+
+<Callout type="warning">
+  Skipping step B means the pixel can't detect field-level interaction inside the form — you'll only see `completed_lead` events on submit, not `partial_lead` events from email/phone field interaction.
+</Callout>
+
+### Plain HTML / custom site
+
+Open your HTML files, paste the code anywhere between `<head>` and `</head>`, save, re-upload to your server. If you have a build step (Vite, Next.js, etc.), put it in the document-level head template.
+
+### What the pixel does
+
+Once loaded, the pixel runs silently and:
+
+- Detects field-level keystrokes (email, phone, name) **before** the user hits submit
+- Captures attribution context — UTMs, referrer, click IDs (`fbclid`, `gclid`, `msclkid`, etc.)
+- Survives cross-session journeys via a first-party `pl_vid` visitor cookie + server-side identity graph
+- Fires a `partial_lead` event when the first PII is captured
+- Fires a `completed_lead` event when the form is submitted
+
+No configuration needed — it just works.
+
+---
+
+## Step 3 — Send captured leads to your destinations
+
+Once leads are flowing in, the next step is sending them outbound — to Meta for ad optimization, to your CRM, or to wherever your team does follow-up.
+
+### Meta Conversion API
+
+Open [Dashboard → Conversions → Meta Conversion API](https://partialleads.com/dashboard/conversions/meta-capi) and click **Add config**.
+
+For lead-gen specifically, configure:
+
+- **Domain** — pick from your authorized domains
+- **Pixel ID** — from your Meta Events Manager
+- **Access token** — system user token from Meta Business Settings, marked "Never expires"
+- **Event name** — `Lead` (the default; switch to a custom event code if your Meta campaign uses one)
+- **Send mode** — **Automatic** for hands-off dispatch on every completed lead, or **Manual** if you want to review each lead before it fires
+
+You can also create **multiple configs** with [trigger rules](https://partialleads.com/dashboard/conversions/meta-capi) — for example, only fire CAPI for leads whose UTM source is `facebook`, or whose landing URL contains `/webinar`. Useful when you want Meta to optimize against specific lead segments without noise from organic traffic.
+
+### GoHighLevel
+
+GHL has two integration surfaces with PartialLeads:
+
+1. **Lead capture** — the pixel detects form fills inside GHL forms (covered in Step 2 above). Captured leads appear in your PartialLeads dashboard.
+2. **Payment attribution** — if your GHL funnel takes payments, you can send the Payment Received webhook back to PartialLeads so we can attribute revenue to the ad click.
+
+For the payment-attribution path, open [Dashboard → Integrations → GoHighLevel](https://partialleads.com/dashboard/integrations/ghl) and click **Connect**. PartialLeads gives you a webhook URL + signing token to paste into a GHL workflow.
+
+<Steps>
+
+#### Create a GHL workflow
+
+In GHL: **Automation → Workflows → + New Workflow**. Trigger: **Payment Received** (or **Order Placed**, depending on your GHL version).
+
+#### Add a "Custom Webhook" action
+
+Action type: **Custom Webhook**. URL: the webhook URL from PartialLeads. Add a custom header:
+- Name: `X-PartialLeads-Token`
+- Value: the signing token from PartialLeads
+
+#### Paste the JSON body template
+
+PartialLeads provides a JSON body template that maps GHL's variable placeholders (`{{payment.transaction_id}}`, `{{contact.email}}`, etc.) to our normalized purchase fields. Copy it from the Integrations page.
+
+#### Save & test
+
+Save the workflow, then trigger a test payment in GHL. The connection status will flip from "Pending first event" to "Active" within a few seconds.
+
+</Steps>
+
+<Callout type="info">
+  GHL variable schema sometimes changes between versions. If a field comes through as empty, use GHL's variable picker (curly-brace icon) to find the current variable name. Our payload normalizer accepts generous aliases on each field, so minor schema drift is tolerated.
+</Callout>
+
+### Outbound Webhook (Zapier, Make, custom CRM)
+
+For everything that isn't Meta or GHL — Klaviyo, ActiveCampaign, HubSpot, Mailchimp, your own backend — use the outbound webhook.
+
+Open [Dashboard → Webhooks](https://partialleads.com/dashboard/webhooks) and click **Add webhook**. Configure:
+
+- **Webhook type** — Generic JSON, Zapier, or Make.com (pre-shaped payloads for each)
+- **Destination URL** — your CRM's inbound webhook URL
+- **Trigger event** — pick one or more:
+  - `partial_lead` — fires the moment we capture email/phone, before form submit (great for cart-abandonment-style recovery sequences)
+  - `completed_lead` — fires when the form is submitted (`is_submitted` flips `0 → 1`)
+  - `lead_enriched` — fires when AI enrichment finishes with a verdict
+- **Domain filter** (optional) — only fire for events from a specific authorized domain
+- **Filter rules** (optional) — UTM-based or score-based filtering before the dispatch fires
+
+<Callout type="info">
+  The same webhook can fire on multiple triggers. Many customers wire **completed_lead** to their main CRM and **partial_lead** to a recovery-email tool — that way an abandoned form becomes a follow-up email automatically.
+</Callout>
+
+After saving, click **Test webhook** to dispatch a synthetic event. The response code + body show up in the Webhooks page activity log.
+
+---
+
+## Step 4 — Cross-session conversion matching
+
+This one's automatic — no setup — but worth understanding.
+
+When a visitor fills out a form on page A and lands on a thank-you page B (often on a different domain), PartialLeads can still link the two sessions:
+
+- **Same-session match** — A and B share a `pl_sid` cookie. Trivial.
+- **Cross-session match via visitor cookie** — a first-party `pl_vid` cookie persists across sessions on the same device. We link A and B if both fire from devices sharing the visitor ID.
+- **Cross-session match via identity graph** — A captures `email = alice@example.com`; B captures `email = alice@example.com` on a different domain with no shared cookie. The server-side identity graph links them via email/phone hashing.
+
+This means a typical webinar funnel — landing page on `yoursite.com`, registration form on `webinarjam.com` thank-you page, follow-up confirmation on `gmail.com` — all stays attributed back to the original ad click.
+
+<Callout type="info">
+  If your thank-you page is on a different domain that you control, add **both** domains to [Authorized Domains](https://partialleads.com/dashboard/authorized-domains). The pixel needs to fire on both for the match to work reliably.
+</Callout>
+
+---
+
+## Step 5 — AI Lead Intelligence (optional)
+
+Open [Dashboard → AI Intelligence](https://partialleads.com/dashboard/ai-intelligence) to set up persona-scoring on every captured lead.
+
+<Steps>
+
+#### Write your persona description
+
+Describe your ideal customer in plain English. Examples:
+
+> Solo coaches and consultants charging $5K+ for high-ticket programs, primarily in the US/UK/AU, who run their own ad spend.
+
+> SaaS founders pre-product-market-fit looking for B2B sales intelligence — typically Series A, 10-50 employees.
+
+The more specific, the more useful the match scores.
+
+#### Save the persona
+
+Click **Save**. The persona text is hashed (`persona_hash`) so we can detect when you change it later.
+
+#### Watch the enrichment flow
+
+When a `completed_lead` fires, the enrichment worker:
+
+1. **Research** (`gpt-4o-mini-search-preview`) — does real web search on the email domain + person name + location. Pulls LinkedIn, company pages, professional directories. Roughly 60 seconds per lead.
+2. **Persona match** (`gpt-4o-mini`) — reads the research output + your persona text, emits a `match_score` (0–100), `match_verdict` (strong/moderate/weak), and `match_reasons` (specific evidence).
+
+Results appear on [Leads](https://partialleads.com/dashboard/leads) with a chip badge per lead, and full detail on each lead's intelligence page.
+
+</Steps>
+
+<Callout type="warning">
+  Each enrichment costs **1 credit** (decremented from `enrichment_credit_log`). New signups get 0 credits — buy a credit pack from [AI Intelligence](https://partialleads.com/dashboard/ai-intelligence) or [Billing](https://partialleads.com/dashboard/billing) to enable enrichment.
+</Callout>
+
+<Callout type="info">
+  Enrichment is **cached for 30 days** per `(client_id, email)`. Re-enriching the same email within that window costs 0 credits. Changing your persona text triggers a partial cache hit — only step 2 re-runs (no web search, no credit charge for the search half).
+</Callout>
+
+---
+
+## What you'll see in PartialLeads
+
+- **[Leads](https://partialleads.com/dashboard/leads)** — every captured lead, partial + completed, with source attribution, journey timeline, and AI persona match chips
+- **[Lead Intelligence](https://partialleads.com/dashboard/leads)** (per-lead page) — full enrichment payload: research output, LinkedIn search result, persona match verdict, evidence
+- **[Conversions](https://partialleads.com/dashboard/conversions)** — Meta CAPI dispatch log, dedup state, HTTP response per send
+- **[Webhooks](https://partialleads.com/dashboard/webhooks)** — outbound dispatch history per webhook, including retries and failure reasons
+- **[Attribution](https://partialleads.com/dashboard/attribution)** — wedge chart of which channels drove your completed leads
+
+---
+
+## Troubleshooting
+
+### "No events appearing"
+
+- Check [Authorized Domains](https://partialleads.com/dashboard/authorized-domains) — your funnel domain must be listed and verified
+- Open your funnel in an incognito window; check the browser network tab for `POST /capture/init` calls to `api.partialleads.com`
+- For GHL: confirm the pixel is installed in **both** locations (funnel header AND inside the form)
+
+### "Pixel fires on the page but no field events"
+
+- Make sure the form itself isn't inside an iframe whose `src` is a third-party domain — if it is, install the pixel inside that iframe too (the GHL pattern)
+- Check that your form uses standard `<input type="email" />` and `<input type="tel" />` — custom-built form widgets that don't use real input elements won't be detected
+
+### "Meta CAPI events missing"
+
+- Open [Conversions → Meta Conversion API](https://partialleads.com/dashboard/conversions/meta-capi) and check the activity log for your config
+- Most failures are wrong **access token** — Meta tokens silently expire if not marked "Never expires" in Business Settings
+- Trial accounts have CAPI gated — check [Billing](https://partialleads.com/dashboard/billing) for plan status
+
+### "GHL purchases not matching"
+
+- Check the GHL connection status on the integrations page. If it says "Pending first event", no payment webhook has arrived yet
+- Verify the workflow's webhook URL + `X-PartialLeads-Token` header match what PartialLeads shows
+- Inna-pattern bug-history: GHL's payment variables changed `payment.created_at` → `payment.created_on` at some point. Use the variable picker in GHL to confirm current names
+
+### "AI enrichment not running"
+
+- Check enrichment credit balance on [AI Intelligence](https://partialleads.com/dashboard/ai-intelligence) — zero credits means worker skips enqueue
+- Persona text empty → no match score (research still runs, just no verdict)
+
+---
+
+## Not yet shipped
+
+- **Per-field-shape detection in non-standard form builders** — only standard `<input>` elements are detected. Custom React components that don't render real inputs (some Webflow form widgets, some no-code builders) aren't picked up
+- **Phone number normalization for international numbers** — works cleanly for US/UK/AU; some edge cases for less common country codes need manual review
+- **Built-in email drip sequences** — PartialLeads captures the lead, but doesn't send the recovery emails itself. Wire `partial_lead` to your ESP via outbound webhook
+- **Multi-tenant persona** — one persona per account today. If you sell into multiple ICPs from one account, you'll see compound match verdicts
+
+---
+
+Need the pixel installed first? See [Install](https://partialleads.com/dashboard/install). Already running PartialLeads? Open your [Dashboard](https://partialleads.com/dashboard). Stuck? Email [support@partialleads.com](mailto:support@partialleads.com).

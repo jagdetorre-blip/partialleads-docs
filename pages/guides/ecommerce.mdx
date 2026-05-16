@@ -1,0 +1,224 @@
+import { Callout, Steps } from 'nextra/components'
+
+# E-Commerce Setup
+
+PartialLeads attaches to your Shopify or WooCommerce store, captures partial form behavior during checkout, sends every purchase event to Meta, Pinterest, and Google Ads, and attributes revenue back to the ad click that brought the customer in.
+
+## What you'll set up
+
+- **Pixel install** on your storefront, so we can see visitor behavior
+- **Webhook subscriptions** for Order created / Order paid / Refund events
+- **Server-side conversion APIs** to Meta, Pinterest, and Google Ads
+- **Multi-currency revenue rollups** in your dashboard (AUD / EUR / CAD / SGD / CHF and more)
+
+Most stores are live in 20–30 minutes.
+
+## Before you start
+
+- Admin access to your Shopify or WooCommerce store
+- Your storefront domain handy (e.g., `yourstore.com` or `yourstore.myshopify.com`)
+- (Optional) Your Meta pixel ID and access token, Pinterest ad account ID, Google Ads account
+
+---
+
+## Step 1 — Authorize your store domain
+
+Open [Dashboard → Authorized Domains](https://partialleads.com/dashboard/authorized-domains) and add your storefront domain. This is a prerequisite for every other step — webhooks, pixels, and CAPI dispatches all check authorization before firing.
+
+Verification happens automatically the first time the pixel fires from that domain. No manual approval step.
+
+<Callout type="info">
+  Add both apex and subdomain if you serve both (`yourstore.com` covers `www.yourstore.com` automatically; Shopify's `.myshopify.com` and a custom domain are different and both need authorizing).
+</Callout>
+
+---
+
+## Step 2 — Connect your store
+
+Pick your platform. The dashboard has a separate setup wizard for each.
+
+### Shopify
+
+Open [Dashboard → Integrations → Shopify](https://partialleads.com/dashboard/integrations/shopify) and click **Connect a store**. The wizard walks you through three substeps in your Shopify Admin.
+
+<Steps>
+
+#### Install the Customer Events pixel
+
+In Shopify Admin, open **Settings → Customer events → Add custom pixel**.
+
+- Name it `PartialLeads`
+- Paste the full pixel code shown in PartialLeads into the **Code** field (copy with the button — it's ~30 KB of inline JavaScript)
+- Click **Save**, then **Connect**
+- Set **Customer privacy → Permission** to **Not required** so the pixel fires on all traffic
+
+<Callout type="warning">
+  Shopify's Customer Events sandbox doesn't expose `document` or `window` — a script-loader wrapper silently fails. The pixel must be pasted inline. You'll need to re-paste when PartialLeads ships pixel improvements (same as native Shopify pixel apps).
+</Callout>
+
+#### Create two webhooks
+
+In Shopify Admin, open **Settings → Notifications → Webhooks** and click **Create webhook** once per event.
+
+For each webhook:
+- **Format**: JSON
+- **URL**: the webhook URL shown in PartialLeads (looks like `https://api.partialleads.com/webhooks/shopify/{connection_id}`)
+
+Create one webhook each for:
+- **Order payment** (or "Orders paid")
+- **Refund create**
+
+#### Paste Shopify's signing secret
+
+When you save the first webhook, Shopify generates a 64-character signing secret. Click into the webhook you just created and click **Reveal** next to **Signing secret** to copy it.
+
+Paste it into PartialLeads. We use it to verify Shopify's HMAC signature on every inbound order — without it, every webhook gets rejected.
+
+</Steps>
+
+<Callout type="info">
+  Multi-store? Click **Connect another store** to repeat the process. PartialLeads supports unlimited Shopify stores per account (one pixel + one secret per store).
+</Callout>
+
+### WooCommerce
+
+Open [Dashboard → Integrations → WooCommerce](https://partialleads.com/dashboard/integrations/woocommerce) and click **Connect a store**. The wizard is a focused modal with three substeps.
+
+<Steps>
+
+#### Enter your site URL
+
+Paste your WooCommerce storefront URL (e.g., `https://yourstore.com`). We'll strip the path automatically. Use `https://` for production stores.
+
+#### Set up two webhooks in WordPress
+
+In WordPress Admin, open **WooCommerce → Settings → Advanced → Webhooks** and click **Add webhook** twice — once for each event.
+
+For both webhooks:
+- **Status**: Active
+- **Delivery URL**: the URL shown in PartialLeads after you click Save (looks like `https://api.partialleads.com/webhooks/woocommerce/{connection_id}`)
+- **Secret**: the signing secret you paste below (you generate this — any 16–256 character string of letters, digits, and safe symbols works)
+
+Create one webhook each for:
+- **Order created**
+- **Order updated**
+
+Use the **same secret** for both webhooks.
+
+#### Live HMAC test
+
+PartialLeads polls for the first inbound webhook and validates the signature. If your secret matches what you pasted into WC, you'll see ✓ within 90 seconds.
+
+If the test times out or the HMAC fails, the wizard will prompt you to re-check the secret in WC and re-paste it. Most failures here are typos or accidental whitespace at the end of the secret.
+
+</Steps>
+
+---
+
+## Step 3 — Send purchase events to ad platforms
+
+Once your store is connected, every order flows into PartialLeads. The next step is sending those orders to your ad platforms as server-side conversion events.
+
+### Meta Conversion API
+
+Open [Dashboard → Conversions → Meta Conversion API](https://partialleads.com/dashboard/conversions/meta-capi) and click **Add config**.
+
+Each config maps **one domain → one Meta Pixel**. You can create multiple configs (different pixels for different brands or domains).
+
+You'll need:
+- **Domain** — pick from your authorized domains
+- **Pixel ID** — from your Meta Events Manager
+- **Access token** — generate a system user token in Meta Business Settings, scope it to your pixel, mark it as **Never expires**
+- **Event name** — defaults to `Lead` for capture events; switch to `Purchase` for ecommerce orders, or pick a custom event code
+- **Send mode** — for ecommerce, use **Automatic** so every order fires CAPI without manual review
+- **Shopify ecommerce events** toggle — when Shopify is connected, flip this on so Shopify purchases automatically dispatch to Meta with full line-item context
+
+<Callout type="info">
+  Multi-pixel deduplication is automatic. `meta_capi_sends(session_id, config_id)` is the dedup key — toggling pixels on/off won't re-send events that already fired.
+</Callout>
+
+### Pinterest Conversions API
+
+Open [Dashboard → Conversions → Pinterest](https://partialleads.com/dashboard/conversions/pinterest) and click **Add config**.
+
+You'll need:
+- **Domain** — pick from your authorized domains
+- **Ad account ID** — from Pinterest Ads Manager (the 18-digit numeric ID)
+- **Access token** — generated in your Pinterest developer console
+
+<Callout type="warning">
+  Pinterest Conversions API requires a **Starter** plan or higher. Free-tier accounts won't see the config page.
+</Callout>
+
+### Google Ads (Sheets-based)
+
+Open [Dashboard → Conversions → Google Ads](https://partialleads.com/dashboard/conversions/google-ads) and click **Connect Google Sheets**.
+
+PartialLeads sends Google Ads offline conversions via a Google Sheet you grant us access to — Google Ads imports the sheet on a schedule. The OAuth flow drops a fresh conversion sheet into your Google Drive automatically.
+
+You'll need:
+- A Google account with Google Sheets access
+- A Google Ads account with the conversion action you want to upload to
+
+The page has two tabs:
+- **Sheets (Offline)** — the conversion upload path
+- **Web Call Tracking** — for swapping displayed phone numbers with Google forwarding numbers for ad-clicked visitors (separate workflow)
+
+<Callout type="warning">
+  Google Ads integration requires a **Starter** plan or higher.
+</Callout>
+
+---
+
+## What you'll see in PartialLeads
+
+Once everything is wired up, your dashboard fills in:
+
+- **[Home](https://partialleads.com/dashboard)** — daily purchase rollup, Revenue by Currency card (one tile per currency you've sold in), funnel summary
+- **[Purchases](https://partialleads.com/dashboard/purchases)** — every order, attributed back to its ad click or organic source, with re-match controls if you spot a misattribution
+- **[Attribution](https://partialleads.com/dashboard/attribution)** — wedge chart of which channels drove revenue (first-touch + last-touch + multi-session journeys)
+- **[Conversions](https://partialleads.com/dashboard/conversions)** — per-CAPI dispatch log, dedup state, and HTTP response codes per send
+
+If a customer landed via an ad, came back two days later organically, then purchased — Purchases shows the journey; Attribution shows the wedge weighting.
+
+---
+
+## Troubleshooting
+
+### "No events appearing"
+
+- Check the [Authorized Domains](https://partialleads.com/dashboard/authorized-domains) page — your storefront domain must be listed and verified
+- Open your storefront in an incognito window; check the browser network tab for `POST /capture/init` calls to `api.partialleads.com`
+- For Shopify: confirm the Customer Events pixel is in **Connected** state, not Draft
+
+### "Webhook signature failure" (HMAC mismatch)
+
+- For **Shopify**: re-copy the signing secret. Click **Reveal** in Shopify Admin and paste verbatim — no leading/trailing spaces
+- For **WooCommerce**: confirm both webhooks (Order created + Order updated) use the **same secret**, and that the secret in PartialLeads matches what's in WC
+
+### "Duplicate Meta events"
+
+- This means two configs are firing for the same domain. Open [Meta Conversion API](https://partialleads.com/dashboard/conversions/meta-capi) and check the configs list — each domain should have at most one `Automatic` send mode config per pixel
+
+### "Currency missing on Meta event"
+
+- Meta CAPI requires a 3-letter currency code on every Purchase event. PartialLeads pulls the currency from the order payload; if it's missing, Meta will reject the event. Open the failed delivery in the Conversions log to see the payload — typically the platform integration isn't sending `currency` in the webhook
+
+### "Stripe attribution not showing"
+
+- Stripe Connect is currently **sandbox-only** (see "Not yet shipped" below). Live Stripe attribution unblocks once business entity activation completes
+
+---
+
+## Not yet shipped
+
+We're being upfront about gaps you might hit:
+
+- **Stripe Connect (live mode)** — sandbox-only as of 2026-05-16, pending business entity activation under a US or UK Stripe-supported jurisdiction
+- **BigCommerce, Squarespace, Magento** — not integrated yet. Use the [Custom Platforms](/guides/custom-platforms/) Universal Webhook path as an interim
+- **Pinterest CAPI deduplication parity with Meta** — Pinterest uses a different idempotency model; multi-config dedup behaves differently
+- **Built-in abandoned-cart email sequences** — PartialLeads captures the abandoned-cart signal but doesn't send the recovery emails itself. Wire the [outbound webhook](https://partialleads.com/dashboard/webhooks) `partial_lead` event to Klaviyo, ActiveCampaign, or your ESP of choice
+
+---
+
+Need the pixel installed first? See [Install](https://partialleads.com/dashboard/install). Already running PartialLeads? Open your [Dashboard](https://partialleads.com/dashboard). Stuck? Email [support@partialleads.com](mailto:support@partialleads.com).

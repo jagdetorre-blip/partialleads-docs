@@ -1,0 +1,76 @@
+import { Callout, Steps } from 'nextra/components'
+
+# Install on Typeform
+
+Typeform is different from every other platform on this list. You can't paste the PartialLeads tracking code directly into Typeform — they don't expose a custom-code field in the form editor.
+
+The workaround is to install through **Google Tag Manager**. Typeform has a built-in connection to GTM, and once GTM is loaded inside the form, PartialLeads loads with it.
+
+This sounds more complicated than it is. It takes about 10 minutes.
+
+## What you'll do
+
+1. Install Google Tag Manager on your parent website (the page that hosts the Typeform embed)
+2. Add the PartialLeads tracking code as a tag inside GTM
+3. Connect GTM to your Typeform via Typeform's settings
+
+PartialLeads will then fire inside the embedded form automatically.
+
+## Step-by-step
+
+<Steps>
+
+### Install GTM on your parent site
+
+Follow the [Google Tag Manager guide](/using/setup/google-tag-manager/) to install GTM on your website. If you already have GTM, skip this step.
+
+The "parent site" is the page where you embedded Typeform — for example, `yoursite.com/contact` if you have a Typeform on your contact page.
+
+### Add PartialLeads as a tag in GTM
+
+Inside GTM, create a new Custom HTML tag with the PartialLeads tracking code, triggered on All Pages. Detailed instructions in the [Google Tag Manager guide](/using/setup/google-tag-manager/).
+
+Publish your GTM container after adding the tag.
+
+### Open your Typeform form
+
+Log into [typeform.com](https://typeform.com). Open the form you want to track.
+
+### Go to Connect
+
+At the top of the form editor, click the **Connect** tab.
+
+### Connect Google Tag Manager
+
+Scroll the list of integrations until you find **Google Tag Manager**.
+
+Click **Connect**. Typeform will ask for your GTM container ID — it looks like `GTM-XXXXXX`. You can find this at the top-right of your GTM workspace.
+
+Paste the container ID and click **Connect**.
+
+### That's it
+
+Typeform will now load your GTM container (and your PartialLeads tag inside it) every time someone opens the form. No re-publishing needed.
+
+</Steps>
+
+## How to know it's working
+
+Open the page on your site where the Typeform is embedded (in a new incognito tab). Start filling out the Typeform — type a few characters into the first field.
+
+Go back to your PartialLeads dashboard's [Setup](https://partialleads.com/dashboard/install) page. Within 5 seconds, the verification panel should switch to **Script installed** or **First capture detected**.
+
+## Standalone Typeform URLs
+
+If you share a Typeform via its direct URL (something like `typeform.com/to/abc123`) rather than embedding it on your site, the GTM connection still works inside the form — Typeform loads your GTM container even on their hosted version.
+
+The trade-off: you won't capture the visitor's UTM source from the parent page (because there is no parent page). The form sees its own URL only.
+
+## Limitations to know about
+
+- **Typeform's design** doesn't have a "custom code" field on the form itself — only via the GTM connection. There's no way to install the pixel directly inside the form HTML.
+- **Field-level capture** works for standard Typeform fields (Email, Phone Number, Short Text). It does NOT work for more exotic question types (Picture Choice, Yes/No, Rating, etc.) because those don't use standard text inputs.
+
+---
+
+[← Back to all install guides](/other-resources/) · [Troubleshooting →](/other-resources/troubleshooting/)

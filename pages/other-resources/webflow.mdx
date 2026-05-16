@@ -1,0 +1,69 @@
+import { Callout, Steps } from 'nextra/components'
+
+# Install on Webflow
+
+Webflow has a built-in feature for adding custom code to your site's head. The install takes about 60 seconds.
+
+## Step-by-step
+
+<Steps>
+
+### Open your project settings
+
+In the Webflow Designer, click the **gear icon** in the top-left corner (next to your project name), then choose **Project settings**.
+
+You can also access it directly at `https://webflow.com/dashboard/sites/your-site/settings`.
+
+### Go to Custom Code
+
+In the project settings, click **Custom Code** in the left sidebar.
+
+### Paste in the Head Code box
+
+You'll see two text areas: **Head Code** and **Footer Code**. Paste the PartialLeads tracking code into the **Head Code** box:
+
+```html
+<script>window.PartialLeadsConfig={apiKey:"pl_yourkey"};</script>
+<script src="https://api.partialleads.com/px-universal.js" async></script>
+```
+
+### Save changes
+
+Click **Save Changes** at the top of the page.
+
+### Publish your site
+
+The tracking code only goes live on your published site — not in the Designer preview.
+
+Click the **Publish** button in the top-right of the Designer. Pick your live domain (e.g., `yoursite.com`) and click **Publish**.
+
+</Steps>
+
+<Callout type="warning">
+  Webflow shows the tracking code in your site's preview, but it only **fires** on your published site. If you're testing on `your-site.webflow.io` or in the Designer's preview pane, the pixel won't send any data. Test on your actual live domain.
+</Callout>
+
+## Free vs paid Webflow plans
+
+Webflow's custom code feature is available on:
+
+- **Free / Starter plan** — yes, custom code works
+- **Basic / CMS / Business / Enterprise** — yes, all paid plans
+
+If your Webflow account uses the **legacy Free plan** (no longer offered to new users), custom code might be gated. Check **Project Settings → Custom Code** — if the text areas are disabled with a "Upgrade required" message, you'll need a Basic plan or above.
+
+## How to know it's working
+
+Open your live Webflow site in a new incognito or private browser tab. Go back to your PartialLeads dashboard's [Setup](https://partialleads.com/dashboard/install) page.
+
+Within 5 seconds, the verification panel should switch from **Waiting for first signal** to **Script installed**.
+
+## Forms in Webflow
+
+Webflow's built-in form elements work fine with PartialLeads — we detect field interaction automatically.
+
+If you use a **custom form widget** (e.g., embedded Typeform, Tally form, or a third-party widget), you may need to install the tracking code inside that widget too. See [Typeform](/using/setup/typeform/) if you're using Typeform specifically.
+
+---
+
+[← Back to all install guides](/other-resources/) · [Troubleshooting →](/other-resources/troubleshooting/)

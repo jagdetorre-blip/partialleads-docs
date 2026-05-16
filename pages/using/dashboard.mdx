@@ -1,0 +1,85 @@
+import { Callout } from 'nextra/components'
+
+# Dashboard
+
+The Dashboard is the first page you see when you log into PartialLeads. It answers one question: **how is my marketing doing right now?**
+
+You don't need to dig for the answer. Everything important is on this page.
+
+## What you'll see
+
+### Today at the top
+
+The hero section shows today's leads and revenue side-by-side, with a small arrow showing whether you're up or down compared to yesterday. Green arrow up means today is better. Red arrow down means today is slower.
+
+If you sell things online, you'll also see today's revenue in your store's currency. Multiple currencies show as separate tiles — one for AUD, one for EUR, and so on — sorted by which currency made you the most this month.
+
+### Recent activity
+
+Below the hero is a feed of what just happened: who filled out a form a few minutes ago, what just got purchased, which ads are firing. This is your "live pulse" — useful when you've just launched a new ad and want to see whether it's working.
+
+### Charts
+
+Two charts side-by-side:
+
+- **Leads over time** — daily count for the period you pick (today, last 7 days, last 30 days). The bigger the bars get over time, the more your funnel is working.
+- **Where leads come from** — donut chart breaking down your top sources (Meta Ads, Google Ads, organic search, direct visits, etc.). If 90% of your leads come from one source, this chart will tell you immediately.
+
+### Funnel summary
+
+If you sell things (ecommerce, courses, services), there's a funnel section showing:
+
+**Visitors → Leads → Completed leads → Purchases**
+
+Each step shows how many people made it through, plus the conversion rate from one step to the next. If your "Leads → Completed leads" rate is very low, your forms are too long. If "Completed → Purchases" is very low, your checkout has friction.
+
+### Health check
+
+A small panel shows whether anything is broken:
+- Failed webhook deliveries
+- Meta access tokens about to expire
+- Domains that haven't received traffic in a while
+- AI Intelligence credits running low
+
+If everything's green, you can ignore this panel. If something turns red or amber, click into it to see what to fix.
+
+## What the numbers mean
+
+<Callout type="info">
+  PartialLeads counts leads from the moment someone types an email or phone into a form — **before** they hit submit. This is why your lead count here might be higher than what you see in your CRM. Both numbers are correct; they just count different things.
+</Callout>
+
+- **Partial leads** — people who started filling out a form. We have their email or phone, but they didn't finish. These are recoverable with a follow-up email.
+- **Completed leads** — people who hit submit. They're in your CRM now.
+- **Visitors** — anyone who landed on your site, whether or not they filled in a form.
+- **Purchases** — actual paid orders from your ecommerce platform.
+- **Revenue** — the total amount paid across all purchases. Refunds subtract from this number automatically.
+
+## What to look for each morning
+
+In about 30 seconds you can:
+
+1. **Glance at the hero** — are leads up or down vs. yesterday?
+2. **Check the health panel** — anything red?
+3. **Scan the source breakdown** — is your paid traffic still driving the most leads, or has something shifted overnight?
+4. **Check recent activity** — does the latest lead look like a real person, or a bot?
+
+That's it. The Dashboard isn't where you do work — it's where you decide what to do work on.
+
+## If something looks off
+
+### "My numbers seem too low"
+
+Most likely cause: a domain isn't authorized, or the pixel isn't installed everywhere. Open **Setup** to see if PartialLeads is detecting traffic on all your domains.
+
+### "My numbers seem too high"
+
+Usually means a bot is hitting your forms. PartialLeads filters obvious bots, but determined ones get through. If you see hundreds of leads from one location in the last hour with no purchases, that's the signal. Email support — we'll help you set up rate limits.
+
+### "Today shows zero leads but yesterday was busy"
+
+Either nothing happened today (early in the day, slow Sunday, etc.) or the pixel stopped firing. Check the health panel for a "no recent sessions" warning. If you see one, the fix is usually a Setup issue — re-paste the snippet, or check whether your site recently changed templates.
+
+---
+
+Want to look at individual leads? Go to [Leads](/using/leads/). Need to install or re-install the tracking? Go to [Setup](/using/setup/). Stuck? Email [support@partialleads.com](mailto:support@partialleads.com).

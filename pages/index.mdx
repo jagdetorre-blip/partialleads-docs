@@ -1,14 +1,44 @@
-# PartialLeads Documentation
+import { Cards, Callout } from 'nextra/components'
+import { ShoppingBag, UserPlus, CalendarCheck, Webhook } from 'lucide-react'
 
-Coming soon. Documentation for PartialLeads — the lead intelligence platform that captures partial form submissions and routes them to ad platforms in real-time.
+# Get Started
 
-## What's coming
+Pick the path that matches your funnel. Same pixel install — different integrations on top.
 
-- Getting started: install the tracking script
-- Integration guides: WordPress, GHL, Shopify, WooCommerce, HubSpot, Typeform, Calendly, ClickFunnels
-- Server-side CAPI setup: Meta, Google Ads, Pinterest
-- Dashboard tour: leads, journeys, attribution, billing
-- Webhooks and AI Lead Intelligence
-- Troubleshooting
+<Callout type="info">
+  Stuck on setup? Email [support@partialleads.com](mailto:support@partialleads.com).
+</Callout>
 
-In the meantime, contact john@partialleads.com.
+<Cards>
+  <Cards.Card
+    icon={<ShoppingBag />}
+    title="E-Commerce"
+    href="/guides/ecommerce/"
+  >
+    Connect Shopify or WooCommerce in a few clicks. Recover abandoned checkouts and send purchase events to Meta, Pinterest, and Google Ads.
+  </Cards.Card>
+
+  <Cards.Card
+    icon={<UserPlus />}
+    title="Lead Generation"
+    href="/guides/lead-generation/"
+  >
+    Capture partial form submissions on opt-ins, downloads, webinar registrations, and applications. Send leads to Meta, your CRM, or a webhook.
+  </Cards.Card>
+
+  <Cards.Card
+    icon={<CalendarCheck />}
+    title="Sales Calls & Bookings"
+    href="/guides/bookings/"
+  >
+    Connect Calendly to attribute booked calls back to the ad that brought them in. OAuth setup lives on the Integrations page for now — a dedicated config page is coming.
+  </Cards.Card>
+
+  <Cards.Card
+    icon={<Webhook />}
+    title="Custom Platforms"
+    href="/guides/custom-platforms/"
+  >
+    Not on Shopify, WooCommerce, or GoHighLevel? Send your events via the Universal Webhook with a bearer token.
+  </Cards.Card>
+</Cards>

@@ -1,0 +1,84 @@
+import { Callout, Steps } from 'nextra/components'
+
+# Install on GoHighLevel
+
+GoHighLevel (GHL) is the only platform that requires the tracking code in **two places**. This isn't a quirk — it's because of how GHL renders forms. Read the explanation below if you want to know why.
+
+## Why two installs?
+
+GHL hosts your funnel pages on one URL, but it renders your forms inside an iframe (a window-within-a-window) that has a different URL (something like `forms.gohighlevel.com`).
+
+If you only install the pixel on the funnel page, the pixel can see the page load — but it can't see what happens inside the form, because that's a separate URL.
+
+If you only install the pixel inside the form, you'd capture submissions — but you'd miss the visitor's UTM source (Facebook ads, Google ads, etc.) because those parameters only live on the parent funnel URL.
+
+You need **both** to get the full picture.
+
+## Step-by-step
+
+<Steps>
+
+### Open your GHL funnel
+
+Log into GoHighLevel. In the left sidebar, click **Sites**, then **Funnels**. Open the funnel where your form lives.
+
+### Part A — Install on the funnel page
+
+In the funnel editor, find your **funnel settings** (usually a gear icon in the top-right). Look for **Header tracking code** or **Tracking code in head**.
+
+Paste the PartialLeads tracking code there:
+
+```html
+<script>window.PartialLeadsConfig={apiKey:"pl_yourkey"};</script>
+<script src="https://api.partialleads.com/px-universal.js" async></script>
+```
+
+Save.
+
+### Part B — Install inside the form
+
+Still in the funnel editor, open the form you want to track. Inside the form builder, find **Add Element** or the equivalent button to insert blocks.
+
+Add a **Code/HTML Block** to the form. (Sometimes called "Custom HTML" or "Embed code".)
+
+Paste the **same** PartialLeads tracking code into the block:
+
+```html
+<script>window.PartialLeadsConfig={apiKey:"pl_yourkey"};</script>
+<script src="https://api.partialleads.com/px-universal.js" async></script>
+```
+
+You can hide this block visually (it has no content to show users), but it must be on the form.
+
+Save the form.
+
+### Publish your funnel
+
+Click **Publish** on the funnel to push the changes live.
+
+</Steps>
+
+<Callout type="warning">
+  If you skip Part B, you won't see **partial leads** — the moment a visitor types their email but doesn't submit. You'll only see fully completed submissions. The partial-lead data is the most valuable part of PartialLeads, so step B is not optional.
+</Callout>
+
+## How to know it's working
+
+Open your funnel in a new incognito or private browser tab. Go back to your PartialLeads dashboard's [Setup](https://partialleads.com/dashboard/install) page.
+
+Within 5 seconds, the verification panel should switch from **Waiting for first signal** to **Script installed**.
+
+Then go back to your funnel, start filling out the form (type an email but don't submit). The panel should jump to **First capture detected** within a few seconds.
+
+## Tracking GHL payments too
+
+If your GHL funnel takes payments, you can also wire up the Payment Received webhook so PartialLeads can attribute revenue back to the ad click that brought the customer in. See the [Lead Generation guide](/guides/lead-generation/) for the full GHL Payment Received setup.
+
+## Common GHL issues
+
+- **"Tracking code option missing"** — different GHL versions hide this in different places. Try **Funnel settings → SEO** or **Funnel settings → Advanced**. If you still can't find it, contact your GHL agency owner — they may have restricted access at the sub-account level.
+- **"Code/HTML Block missing in form builder"** — some GHL form types (specifically Order Forms and Survey Forms) don't allow custom HTML. For those, the partial-capture functionality is unfortunately limited — you'll only see completed submissions.
+
+---
+
+[← Back to all install guides](/other-resources/) · [Troubleshooting →](/other-resources/troubleshooting/)

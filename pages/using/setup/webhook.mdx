@@ -1,0 +1,156 @@
+import { Callout, Steps } from 'nextra/components'
+
+# Webhook
+
+Webhooks send captured leads (and purchase events) **outbound** to your other tools — your CRM, your email platform, your Zapier or Make automation, anywhere you want the data to land.
+
+This is different from [Integration](/using/setup/integration/), which is about pulling data **into** PartialLeads. Webhook is about pushing data **out**.
+
+## Why use webhooks?
+
+Three common reasons:
+
+1. **Sync captured leads into your CRM** — every email PartialLeads captures becomes a new contact in HubSpot, Mailchimp, ActiveCampaign, Klaviyo, etc.
+2. **Trigger automations on partial leads** — send a recovery email the moment someone abandons your form, before they have time to forget about you
+3. **Pipe events into your data warehouse or Slack** — every purchase fires a Slack message to your team, or appends a row to a Google Sheet
+
+PartialLeads doesn't try to BE your CRM or your email tool — we capture the lead, then ship it to whatever tool already runs your follow-up.
+
+## Where to find it
+
+Open [Dashboard → Webhooks](https://partialleads.com/dashboard/webhooks) in your PartialLeads account.
+
+You'll see a list of your configured outbound webhooks. Each has a status (active / paused) and an activity log showing recent deliveries.
+
+## How to set up a webhook
+
+<Steps>
+
+### Open Webhooks
+
+[Dashboard → Webhooks](https://partialleads.com/dashboard/webhooks).
+
+### Click "Add webhook"
+
+A configuration form opens.
+
+### Pick the webhook type
+
+PartialLeads supports three payload shapes:
+
+- **Generic JSON** — sends a flat JSON object. Use this for custom endpoints, your own backend, HubSpot, ActiveCampaign, Klaviyo, etc.
+- **Zapier** — pre-shaped for Zapier's webhook trigger
+- **Make.com** — pre-shaped for Make's webhook module
+
+The Zapier and Make.com options are convenience shortcuts — they format the payload to match what those tools expect, so you don't need to write a transform step on the receiving side.
+
+### Set the destination URL
+
+Paste the webhook URL from your destination tool. Examples:
+
+- **Zapier**: in your Zap, add the "Webhooks by Zapier" trigger → "Catch Hook" → copy the unique URL Zapier gives you
+- **Make.com**: add a Webhooks module → "Custom webhook" → copy the unique URL
+- **Custom CRM / backend**: whatever endpoint you've built to receive PartialLeads events
+
+### Pick trigger events
+
+Each webhook fires on one or more events:
+
+| Event | When it fires |
+|---|---|
+| **Partial lead** | Email or phone captured, but the form wasn't submitted yet |
+| **Completed lead** | Form fully submitted (`is_submitted` flips 0 → 1) |
+| **Purchase** | Stripe / Shopify / WooCommerce / GHL purchase processed |
+| **Refund** | Refund webhook arrives from the payment gateway |
+| **Add to cart** | Shopify Customer Events `product_added_to_cart` |
+| **Checkout started** | Shopify Customer Events `checkout_started` |
+| **Lead enriched** | AI Lead Intelligence finishes with a verdict |
+
+You can fire one webhook on multiple triggers. Many people wire `completed_lead` to their CRM and `partial_lead` to a recovery email tool — that way an abandoned form becomes a follow-up email automatically.
+
+### Optional — domain filter
+
+If you run multiple websites, you can restrict a webhook to fire only for events from a specific authorized domain. Leave it blank to fire for all domains.
+
+### Optional — filter rules
+
+For more granular targeting, add filter rules. You can match on UTM source, URL path, AI persona match score, or other session attributes.
+
+Example: "Only fire `completed_lead` for leads where `utm_source = facebook` AND persona match score > 75". Useful when you want your CRM to focus on high-quality leads from paid traffic.
+
+### Save and test
+
+Click **Save**. Then click **Test webhook** — PartialLeads dispatches a synthetic event to your URL so you can confirm it's working.
+
+The response code (200/400/500) and response body show up in the activity log immediately. If you see 200, you're connected.
+
+</Steps>
+
+<Callout type="info">
+  Webhooks retry automatically on failure. If your destination returns a 5xx error or times out, PartialLeads retries up to 5 times with exponential backoff. The activity log shows every attempt with its response code.
+</Callout>
+
+## Common destinations and how to wire them
+
+### Zapier
+
+In Zapier, create a new Zap. Trigger: **Webhooks by Zapier → Catch Hook**. Zapier gives you a unique URL — paste it into PartialLeads as the webhook destination.
+
+After the first event arrives, Zapier will let you pick which fields to use in your downstream actions (add row to Google Sheets, create contact in HubSpot, send Slack message, etc.).
+
+### Make.com (formerly Integromat)
+
+In Make, add a new scenario. Trigger module: **Webhooks → Custom webhook**. Make gives you a unique URL — paste it into PartialLeads.
+
+After the first event, Make auto-detects the payload structure and lets you map fields to downstream modules.
+
+### Klaviyo
+
+Klaviyo has a native "Track" API for adding contacts and triggering flows. Use PartialLeads' **Generic JSON** webhook type and configure your endpoint to map our payload to Klaviyo's `metric` shape.
+
+### ActiveCampaign
+
+Use ActiveCampaign's "Webhooks" feature in **Settings → Developer → Webhooks**. Pick the events you want, copy the URL, paste into PartialLeads (Generic JSON type). Map fields in ActiveCampaign's webhook handler.
+
+### HubSpot
+
+HubSpot doesn't accept inbound webhooks directly without their Operations Hub. The simplest path is via Zapier or Make as the middleman.
+
+### Slack
+
+In Slack, create an **Incoming Webhook** integration. Copy the webhook URL. In PartialLeads, set the destination URL and pick the events you care about (most teams pick `completed_lead` + `purchase`).
+
+The Generic JSON payload won't render prettily as a Slack message by default — you'll want to put a Zapier or Make step in between to format it.
+
+## Pausing or deleting a webhook
+
+Each webhook has **Pause** and **Delete** buttons on the configuration page.
+
+- **Pause** — stops dispatches without removing the configuration. Useful when you're temporarily debugging the destination
+- **Delete** — removes the webhook entirely. Activity log is also cleared. This can't be undone
+
+## Common questions
+
+### "What does the payload look like?"
+
+Click the activity log entry for any past dispatch — you'll see the exact JSON body that was sent. You can also use **Test webhook** to dispatch a synthetic event to your URL and inspect the payload.
+
+### "My webhook keeps failing with 401 or 403"
+
+Your destination URL requires authentication that PartialLeads isn't sending. Most CRM endpoints need an API key in the request header. Options:
+
+- Use a middleware (Zapier, Make, your own backend) that handles auth and forwards to the CRM
+- Add the auth token as a query parameter in the destination URL (some APIs accept this)
+- For custom endpoints, allowlist PartialLeads' IP range (contact support for the current list)
+
+### "I want to fire on partial leads only when AI persona score is high"
+
+Use filter rules in the webhook config. Match on `score > 75` (or whatever threshold makes sense). Filter rules use AND/OR logic if you have multiple conditions.
+
+### "Can I send the same event to multiple destinations?"
+
+Yes — create one webhook per destination. PartialLeads fires each independently. So a single completed lead can simultaneously go to Klaviyo, Slack, and your data warehouse.
+
+---
+
+Next up: [Conversions](/using/setup/conversions/) — send purchase events to Meta, Google Ads, and Pinterest.

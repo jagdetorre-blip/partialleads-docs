@@ -1,0 +1,138 @@
+import { Callout } from 'nextra/components'
+
+# Troubleshooting
+
+If your install isn't working, the problem almost always falls into one of the categories below. Work through them in order — the most common fixes are at the top.
+
+## "Setup says 'Waiting for first signal' forever"
+
+This means PartialLeads hasn't seen any traffic from your site yet. Three things to check, in order:
+
+### 1. Did you visit your live site after pasting?
+
+The pixel only fires when someone loads a page. The Setup verification panel doesn't preview anything — it waits for real traffic.
+
+Fix: open your site in a new browser tab (incognito works best, to avoid old cached versions). Refresh once.
+
+### 2. Is the code on every page?
+
+Some platforms paste code into one specific page instead of the site-wide header. The pixel needs to be on the page you're visiting.
+
+Fix: view your site's HTML source. Right-click any page on your site and choose **View Page Source** (or press Ctrl+U / Cmd+U). Press Ctrl+F / Cmd+F and search for `partialleads`. You should see two `<script>` tags.
+
+If you don't see them, the code isn't actually on this page. Go back to your platform and re-check the install.
+
+### 3. Did you save and republish?
+
+Webflow, Shopify, and WordPress all require explicit save/publish steps. The code change isn't live until you do this.
+
+Fix: go back to your platform's editor and check whether there's an unpublished/draft state. Click Save → Publish.
+
+---
+
+## "Setup shows 'Script installed' but no form captures"
+
+The pixel is loading on your site, but no one has typed into a form yet. This is a normal in-between state — the pixel is waiting for someone to interact with a form.
+
+### Test it yourself
+
+Visit your site in an incognito tab. Find a form. Type an email into the email field but don't submit. Wait 3 seconds.
+
+Go back to PartialLeads → Setup. The status should jump to **First capture detected**.
+
+### If captures still don't fire
+
+The most common cause: your form doesn't use standard HTML inputs. Some no-code form builders render custom React components or non-standard inputs that the pixel can't detect.
+
+Fix:
+- For most builders, check the form settings for an option to use "default HTML inputs" or "standard form fields"
+- For Webflow, use the built-in Form Block (not a third-party widget)
+- For Typeform, see the [Typeform install guide](/using/setup/typeform/) — the standard text/email fields work but exotic question types don't
+
+If you're stuck, email [support@partialleads.com](mailto:support@partialleads.com) with a link to a page that has your form and we'll diagnose it.
+
+---
+
+## "We capture leads but no completed submissions"
+
+You see partial leads come in (people who typed but didn't submit), but no completed leads (no one shows as having actually finished the form).
+
+This means the pixel sees field input, but doesn't see the form's submit action. Common with single-page apps, custom React components, or some Webflow form widgets.
+
+### Fix 1 — Confirmation Pages
+
+If your form has a thank-you page (a URL the user lands on after submitting), add that page's URL to **Confirmation Pages** in your dashboard.
+
+Open the [Setup page in your dashboard](https://partialleads.com/dashboard/install), scroll to **Confirmation Pages**, and add the thank-you URL. PartialLeads will flip the lead's status to "Completed" the moment we see a visitor land on that URL.
+
+### Fix 2 — Use a standard form
+
+If your form is a custom widget, switching to a standard HTML form will fix the issue entirely. Most platforms have a "Form Block" or "Form element" that uses standard `<form onsubmit>` HTML — those work without any extra configuration.
+
+---
+
+## "I changed my site's template and now nothing fires"
+
+Most platforms wipe custom code when you swap themes or templates. This is the most common slip — happens to about half of customers who change themes.
+
+Fix: re-paste the snippet into the new template's header following the [Setup overview](/using/setup/) instructions for your platform.
+
+---
+
+## "It works on the homepage but not on landing pages"
+
+Either:
+
+- **You only pasted the code on the homepage** — go back and ensure the code is in your site's site-wide header, not on a single page
+- **Your landing pages are on a different domain or subdomain** — add the additional domain to [Authorized Domains](https://partialleads.com/dashboard/authorized-domains) in PartialLeads
+
+To check: view source on a landing page that isn't firing. Search for `partialleads`. If you don't see the script tags, the code isn't there.
+
+---
+
+## "My API key got exposed by accident"
+
+Email [support@partialleads.com](mailto:support@partialleads.com). We'll rotate the key. Your old key stops working immediately; you'll need to update your live site with the new code.
+
+---
+
+## "PartialLeads slows down my site"
+
+This shouldn't happen — the pixel is loaded with the `async` attribute, meaning it loads in parallel with the rest of your page and doesn't block rendering.
+
+If you genuinely see a performance regression after installing PartialLeads:
+
+1. Run a performance test (PageSpeed Insights, GTmetrix) before and after, and compare
+2. Check whether other tracking scripts are also installed — sometimes the bottleneck is a different tag firing on the same trigger
+3. Email support with the test results — we'll dig in
+
+The pixel is around 30 KB compressed and the script execution itself takes single-digit milliseconds even on a low-end phone.
+
+---
+
+## "Setup looks right but the dashboard is empty"
+
+If verification shows **First lead captured!** but the dashboard's [Leads](https://partialleads.com/dashboard/leads) page shows nothing:
+
+1. **Check the date range filter** on the Leads page — by default it shows last 30 days, but if you're testing today and you have a date filter applied, you might be looking at the wrong window
+2. **Check the domain filter** at the top of the Leads page — make sure it's not filtered to a different domain
+3. **Wait a few minutes** — there's a brief delay between capture and dashboard appearance (usually under 30 seconds, but can stretch to a few minutes under load)
+
+If you've waited and the lead still isn't showing, email support with the test email address you used — we'll trace it.
+
+---
+
+## Still stuck?
+
+Email [support@partialleads.com](mailto:support@partialleads.com). Include:
+
+- Your account's domain (e.g., `yoursite.com`)
+- A link to a page where the pixel should be firing
+- A screenshot of the Setup verification panel showing what state it's in
+- Your platform (Shopify, WordPress, etc.) and your install method (direct paste, GTM, plugin)
+
+We typically reply within one business day.
+
+---
+
+[← Back to all install guides](/other-resources/) · [Dashboard →](/using/dashboard/)

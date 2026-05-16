@@ -1,0 +1,157 @@
+import { Callout, Steps } from 'nextra/components'
+
+# AI Intelligence
+
+AI Intelligence is PartialLeads' built-in lead qualification engine. For every lead you capture, it researches the person on the open web and scores them against your ideal customer profile.
+
+Think of it as having a research assistant who LinkedIn-stalks every new lead, reads about their company, and writes you a one-paragraph briefing — within about 60 seconds of capture.
+
+## Where to find it
+
+Open [Dashboard → AI Intelligence](https://partialleads.com/dashboard/ai-intelligence) in your PartialLeads account.
+
+## What it actually does
+
+For each captured lead, the AI engine runs two steps:
+
+### Step 1 — Research
+
+Using a search-enabled AI model, we look up the person on the web. The research pulls:
+
+- **LinkedIn profile** (job title, company, seniority, headline)
+- **Company information** (industry, size, location)
+- **Public directories** (professional associations, licensing boards)
+- **News mentions** if the person is notable
+- **Geographic context** (city, country)
+
+This produces a structured research blob: name → company → role → industry → location → confidence scores per field.
+
+### Step 2 — Persona match
+
+We compare the research findings to **your persona description** — a plain-English paragraph describing your ideal customer.
+
+Example persona:
+
+> Solo coaches and consultants charging $5K+ for high-ticket programs, primarily in the US/UK/AU, who run their own ad spend. Bonus if they have a podcast or visible YouTube presence.
+
+The AI reads your persona, reads the research, and emits:
+
+- **Match score** (0-100)
+- **Match verdict** — Strong / Moderate / Weak
+- **Match reasons** — specific evidence ("Has 'Founder' in their LinkedIn title", "Company has fewer than 5 employees per SimilarWeb", "Based in Sydney, Australia matches AU geo")
+
+Both the research and the persona match appear on the lead's detail page.
+
+## How to set it up
+
+<Steps>
+
+### Open AI Intelligence
+
+[Dashboard → AI Intelligence](https://partialleads.com/dashboard/ai-intelligence).
+
+### Buy enrichment credits
+
+If you haven't already, click **Buy credits** and pick a credit pack. Each lead enrichment costs 1 credit. New PartialLeads accounts start with 0 credits — you need to buy a pack before any enrichment runs.
+
+### Pick when to enrich
+
+Choose a trigger from three options:
+
+| Trigger | When it runs | Best for |
+|---|---|---|
+| **When name AND email are captured** | The moment we have both fields | Most setups — recommended default |
+| **When name, email, AND phone are captured** | Only when all three are captured | Save credits — only research the most qualified leads |
+| **Manual only** | Never automatic. You click "Research" on individual leads | Fully manual — use sparingly |
+
+If you're not sure, pick the first option. You can always change it later.
+
+### Write your persona description
+
+The big text box at the bottom of the page is where your ideal customer description lives.
+
+Tips for a good persona description:
+
+- **Be specific.** "Decision makers" is too vague. "Founders or VPs of Marketing at B2B SaaS companies with 50-200 employees" is useful.
+- **Mention geography if it matters.** "Primarily US-based" or "EMEA-focused" changes the matching.
+- **Mention industry and role.** "E-commerce store owners selling physical products" tells the AI to look for Shopify mentions and online retailer signals.
+- **Mention deal size or budget if relevant.** "Selling $5K+ high-ticket coaching" gives the AI context to evaluate seniority and company maturity.
+- **Mention dealbreakers.** "Not interested in agencies or freelancers" tells the AI to score those down.
+
+About 2-4 sentences is the sweet spot. Longer is fine, but each sentence should add real information.
+
+### Save
+
+Click **Save**. The persona is hashed so we can detect changes later. The next enrichment uses your new persona.
+
+</Steps>
+
+## What you'll see after setup
+
+### On each lead
+
+When you open a lead's detail panel ([Leads](/using/leads/) page), you'll see:
+
+- **Match badge** at the top of the lead card — Strong (green), Moderate (blue), or Weak (gray)
+- **Researched profile** section — job title, company, industry, location with confidence indicators
+- **Match evidence** — bullet list of why the AI gave them this verdict
+- **Research raw output** — collapsible section if you want the full report
+
+### Credit balance
+
+The AI Intelligence page shows your current credit balance, usage trend, and a "Buy more" button.
+
+### Activity log
+
+A list of every enrichment that ran — which lead, when, credit cost, verdict. Useful for tracking spend and spotting any failures.
+
+## Credit economics
+
+| | |
+|---|---|
+| Cost per enrichment | **1 credit** |
+| Credits per pack | Varies (Starter: 25, Standard: 100, Pro: 300) |
+| Cache duration | **30 days** per `(account, email)` |
+| Persona-change behavior | Partial cache hit — only Step 2 re-runs (no credit charge for the research half) |
+
+The cache is important. If the same email comes back within 30 days, we use the cached research — no credit charge. So a returning lead is free to re-score.
+
+If you change your persona description, every future enrichment uses the new persona — and existing leads can be **re-enriched** from their detail page (1 credit each, since the research is still cached but persona match needs to re-run with new context).
+
+## Common questions
+
+### "I want to re-score all my old leads against a new persona"
+
+From the [Leads](/using/leads/) page, select multiple leads (or "Select all"), then click **Re-enrich**. One credit per lead. Useful when you've sharpened your persona description and want updated verdicts on historical leads.
+
+### "How accurate is the research?"
+
+It depends. For B2B leads with a clear LinkedIn presence, the research is very accurate (we generally find their job title, company, and industry). For B2C leads with no professional online presence, the research can be sparse — sometimes just a guessed location and demographic estimate.
+
+The match score reflects this — leads with weak research get marked accordingly, so you know not to over-trust the verdict.
+
+### "Why did the AI mark this lead as a Weak match? They look perfect"
+
+Click into the lead's detail and read the **Match evidence** section. Most of the time, "Weak" matches happen because:
+
+- The AI couldn't find any information on the person (very common for personal Gmail addresses)
+- The information it found contradicts your persona (wrong industry, wrong country, freelancer when you wanted in-house)
+- Your persona description is too narrow — try widening it and re-enriching
+
+### "Can the AI export to my CRM with the match verdict?"
+
+Yes. Set up an outbound webhook on the `lead_enriched` trigger (see [Webhook setup](/using/setup/webhook/)). The webhook fires when enrichment finishes, and the payload includes the match score and verdict — your CRM can route Strong matches to your sales team and Weak matches to a nurture sequence.
+
+### "What if the AI gets information wrong?"
+
+Open the lead's detail and click **Override match** — you can manually re-classify a lead as Strong / Moderate / Weak based on your own knowledge. This doesn't refund a credit, but it keeps your dashboard accurate. Useful when you know personal context the AI couldn't see (e.g., "this is my brother-in-law" or "this lead has been a customer for years").
+
+### "Does my persona text get sent to OpenAI?"
+
+Yes. Your persona description is part of the prompt sent to the AI model for the match step. It's not stored by OpenAI beyond the standard API request retention (30 days for abuse monitoring). The research step is a search query — only the lead's email and name are sent, not your persona.
+
+If you have particularly sensitive persona language you don't want sent to a third-party AI, the only safe option is to leave the persona blank and use the research-only output — though that loses most of the value.
+
+---
+
+Done with AI Intelligence? Browse your scored leads on the [Leads](/using/leads/) page, or check the [Visitors](/using/leads/visitors/) view for the wider funnel.
